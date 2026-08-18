@@ -1,0 +1,220 @@
+## This is a single line comment
+#/
+    This is a multiline comment.
+    #/
+        They can be nested.
+    /#
+/#
+
+%% This is a single line doc comment.
+%/
+    This is a multiline doc comment.
+    %/
+        They can be nested.
+    /%
+/%
+
+%%/
+    Ahother % symbol to comment something meta-textual (like the file or a text section).
+    Works the same for single line comments (does not expect code text after it).
+    To document the file, start with Doc(file), like shown below:
+/%%
+
+%%% Doc(file) This is a Monom file (.mnm) showing the syntax of the 0.2 version.
+
+%%~~ skip until {A_LABEL} ~> go back
+#/
+    a kind of preprocessor that guides the parser, helpful for testing versions or whatever,
+    but it is very important NOT to abuse!
+/#
+
+## this is read after the next point
+
+%%~~ label {A_LABEL}
+
+%% Entry point for an executable
+main() = (
+    #/
+        Monom is a low-to-high level language, combining functional, OOP and reactive paradigms, with some other surprising features you will be able
+        to discover while reading this. The syntax is designed to be robust (not dependent on indent), intuitive (tries to resemble simple mathematics,
+        and to develop as much as possible from a little basis), comfortable (uses EOL (equivalent to ;) as the separator between expressions,
+        but a lot of them can be splitted in several lines) and easy to read. Minimalism is also wellcomed, but readibility and coherence, helpful
+        both for humans and for AI, is more important.
+    /#
+
+    ## declarations (constant by default)
+
+    d1 = 1
+    d2: Int32 = 2
+    def d3: Int64 ## takes the default value until assigned, for integers it is -1, for naturals 1, for floats -0.5, for unsigned floats (Float32.Positive) 0.5
+    d3 = 3
+
+    %% Let's create an alias so that we don't need to type so much. This is its doc
+    use Int = Int64
+
+    ## prefixes can be either before or in the type of an identifier
+
+    var v1 = 1
+    v2: var = 2
+    v3: var Int = 3
+    def var v4: Int
+    v4 <- 4 ## assignment for vars is by the arrow operator, foolishly called varrow (var + arrow)
+
+    ## multi type definition
+    def a: Int, b: Int, c: Int
+
+    ## multi value initialization
+    a =<- b =<- c = 5
+
+    ## Pointers
+
+    %% a pointer to an integer64
+    int1 = 1
+    var int2 = 2
+    ptr1 = ^int
+    ptr2: ^Int = ptr1
+    ptr3: ^Int = ptr1.copy() ## executes the copy of the pointed object, returning the pointer to the copy
+
+    ## in Monom, to test whether 2 objects are the same, compare their pointers, like ^obj1 == ^obj2
+
+    ptr4: ^var Int = ^int2
+    def var ptr5: ^var Int ## or ptr5: var ^var Int
+    ptr5 = ^int2; int3 = 3 ## ; is like EOL
+    ptr5 <- ^int3
+    ptr4.^ <- ptr1.^
+
+    ## functions: all of them have just one argument (arity == 1), and can be applied by a blank space like f x
+
+    %% 0 args
+    f1() = true
+
+    %% 1 args
+    f2 x = x + 1
+    do f2 1 + 3 #/ because of the precedence, this expression is equivalent to (f2 1) + 3
+        it is because if you see f2(1) + 3 you expect that the function is grouped like (f2 1) + 3 and NOT like f2 ((1) + 3)
+
+    f3(x) = x * 321 ## the parentheses have no effect
+
+    nothing ## nothing is the only value, of type Nothing, which can be ignored
+
+    std.io.stdOut.println "Hello World!" ## returns nothing
+
+    ## to ignore something that is not nothing, i.e. something (simply called thing, from Thing), the do word is used
+    do f1()
+
+    %% in functions, the body ends with ; (EOL) but if a declaration, a definition, use, import, export or a do statement follows, the next expression is included
+    f4(x) = ## since the equal expects a expression and it is not complete, EOL is skipped once
+        use std.io.stdOut .readln, .println ## a use expression to unlink readln and println from their namespace, shortening the path, EOL skipped
+
+        do f1() ## a do statement, EOL skipped
+        do println("You can call with parentheses, but it is not mandatory.") #/ here, do is not needed (println returns nothing),
+            but in order to continue the body of the function so that it does not end here, we will use do /#
+
+        def a: Int ## a declaration (or definition, in this case), EOL is skipped again
+        a = readln().length() ## the same, another declaration
+        a + ## the + waits to be complete
+        b ## b from the outside
+        + x ## this can only be complete if it follows the previous expression, it does NOT happen with -
+
+    %% f4 could also be written like this:
+    f5(x) = use std.io.stdOut .readln, .println; do f1()
+do println("You can call with parentheses, but it is not mandatory."); def a: Int
+a = readln().length(); a +; b + x
+
+    ## but do not do it please! If the body of the function gets long, it is  better to wrap it in parentheses, like with this main function
+
+    %% for more than one argument, functions can take tuples
+    f6(x, y) = x + y
+
+    %% a lambda function
+    lam1 = fun x = x + 1
+
+    %% another one
+    def lam2: Int -> Int
+    lam2 = a => a * 5 ## called soft lambdas, the reason will be understood later
+
+    %% a real/hard lambda with auto arguments in a tuple
+    lam3 =
+        fun = $1 +
+            $2 ## using the pipe
+            |> fun = $$1 + 234 ## every nested auto-args lambda gains one $ in its auto arguments
+
+    %% Hard lambdas can call themselves lambda, but only the inner one (soft ones can not be recursive at all, that is why they can be called soft).
+    %% Here we can see how auto expression completion is helpful to write minimalist functions (remember indentation does not matter!)
+    factorial n =
+        (1, n) |> ## again, this expects an expression, so it skips the EOL
+        fun (acc, num) =
+            match num
+            to 1 => acc #/ ends with EOL, except if a to expression is next, in which case the code between the arrow and the next  to
+            will behave like if it were within parentheses (a block), we will see how to tackle the problem of nested match expressions later /#
+            to else =>
+                lambda.(num=num-1, acc=acc*num)## since anything can be after a function, to call with arguments the dot is required. Only valid for tuples
+
+    use std.io.stdOut.println
+
+    ## nested match, how to differentiate whether a to belongs to one or another? by default, to the depest one
+    println match ptr2.^ ( ## if parenthesis + to is found, the body of the match extends until the block is closed
+        to 0 | 1 => 0 ## you can write to right after the 0, since it is a delimiter, but it is not fancy; a example in the next line
+        to if ptr2.^ > 1 &&< 4 => 1 to if ptr2.^ >= 4  &&<= 100 => 2 ## not fancy, if you want to do so, use a semicolon at least
+        to 101 => 3 ; to if ptr2.^ > 101 => 4 ## this is better
+    )
+
+    ## x > y && < z  where > and < mean  >, <, >= or <=  is equivalent to x > y && x < z, the formatter prefers it like this: &&<= (together)
+
+    #/
+        we use the to if construction to check a boolean condition rather than a pattern, something important since when we introduce
+        the inverse functions it is important to distinguish
+            to f x => ... ## we take x using f.__inverse__ and
+            to if f x => ... ## we eval if (f x) is true
+    /#
+
+    %% multiline can be done like this too, with one after the other
+    %% an example of lambda in which we want to call the outer lambda
+    %% notice how we get rid of unnecessary parentheses, the body seems delimited by space like in Python, but it is not (safer against copy-paste errors)
+    collatz number : Int -> Int =
+        is_even n = n % 2 == 0 ; is_odd n =
+                                    n % 2 == 1 ## thanks to the syntax, we can indent like if we were writing in a paper
+        num = if ([1, 2, 4, -1, -2, -4].constains number) return 0 ## early return
+            else number #/
+                        the result of the if expression as a whole is passed to the pipe,
+                        although return is an early return to avoid the strictness of the last expression,
+                        so that branch is known to scape the pipe
+                    /#
+            |> __.abs() ## we refer in a pipe the value passed through as __, here we take the abs using a function/method from Int (Int64) and assign it to num
+        even = fun(times: Int, n: Nat64): Int -> Int =
+            even = lambda ## inside, even does not exist yet, we are not shadowing even, and we can not refer to the outer one
+            n2 = n / 2
+            match n2
+            to 1 | 2 | 4 => times
+            to if is_even n2 => lambda(times + 1, n2)
+            to if is_odd n2 => (fun(times2, nn) =
+                n3 = 3 * nn + 1
+                match n3
+                to 1 | 2 | 4 => times2
+                to if is_even n3 => even(times2 + 1, n3)
+                to if is_odd n3 => lambda(times2 + 1, n3)
+            )(times + 1, n2) ## we need to use parentheses to wrap the lambda and call it right after its definition
+        if (is_even num) even(0, num) else even (-1, 2 * num) ## last expression is returned, it is not inside the last to expression (it finished with the EOL)
+
+    ## Now, we will se how to write types in functions (it is the same for hard lambdas, just consider fun the name of the function)
+
+    %% you can do it like this, taking on account the thin short arrows are associative by the right
+    def g1: Int -> Int -> Int ## is the same as def g1: Int -> (Int -> Int)
+    g1 x = fun y = x + y
+    println(g1 int1 int2)
+
+    %% this is the type of the function
+    g2 x : Int -> (Int, Int) = (x, x ** 2)
+
+    %% now, the type of the argument
+    g3 (x : Int) = (x, x ** 2)
+
+    %% all!
+    g4 (x: Int) : Int -> (Int, Int)
+
+    %% when you write a function, it is pattern matching, and the type is the one of the function, you need parentheses to write the type of the arguments
+    g5 [a, b: Int, [c, d]: [Int, Int]] : [Int, Int, [Int, Int]] -> Int ## usually, the type is not required
+    = a + b + c + d
+
+    ## Not finished yet!
+)
