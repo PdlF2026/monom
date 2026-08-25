@@ -1,220 +1,284 @@
-## This is a single line comment
-#/
+<> Monom 0.1, a programming language, originally designed by Pablo de La Fuente Sancho, 2025
+
+
+<> This is a single line comment
+</
     This is a multiline comment.
-    #/
-        They can be nested.
-    /#
-/#
+    </
+        It can be nested.
+    />
+/>
 
-%% This is a single line doc comment.
-%/
+::: This is a single line doc comment.
+:/
     This is a multiline doc comment.
-    %/
-        They can be nested.
-    /%
-/%
+    :/
+        It can be nested.
+    /:
 
-%%/
-    Ahother % symbol to comment something meta-textual (like the file or a text section).
-    Works the same for single line comments (does not expect code text after it).
-    To document the file, start with Doc(file), like shown below:
-/%%
+    The next doc section will end the effect of the documentation above, since it affects the next code,
+    unless docs are placed before, like with Doc(file). You can use Doc(nothing) for the purpose of ignoring the previous docs,
+    or to write not relevant documentation. Anyway, docs should be always to document some code.
+/:
 
-%%% Doc(file) This is a Monom file (.mnm) showing the syntax of the 0.2 version.
+::: Doc(file) This is a Monom file (.mnm) showing the syntax of the 0.1 version of the language.
 
-%%~~ skip until {A_LABEL} ~> go back
-#/
-    a kind of preprocessor that guides the parser, helpful for testing versions or whatever,
-    but it is very important NOT to abuse!
-/#
 
-## this is read after the next point
+<> this is a generalized annotation (@[< >] instead of @[ ]), affects the next code until the opposite is written (not every annotation supports this)
+@[<allow.prefix_before_name(false)>]
 
-%%~~ label {A_LABEL}
 
-%% Entry point for an executable
+::: Entry point for an executable
 main() = (
-    #/
-        Monom is a low-to-high level language, combining functional, OOP and reactive paradigms, with some other surprising features you will be able
-        to discover while reading this. The syntax is designed to be robust (not dependent on indent), intuitive (tries to resemble simple mathematics,
-        and to develop as much as possible from a little basis), comfortable (uses EOL (equivalent to ;) as the separator between expressions,
-        but a lot of them can be splitted in several lines) and easy to read. Minimalism is also wellcomed, but readibility and coherence, helpful
-        both for humans and for AI, is more important.
-    /#
+    </
+        Monom is a high-to-low level language, combining functional, OOP and actors paradigms, along other features explained in this sample code.
+        The syntax is designed to be robust (not dependent on indent), intuitive (tries to resemble simple mathematics, and
+        to develop as much as possible from a little basis), comfortable (uses EOL (equivalent to ; in the syntax) as the separator between expressions,
+        but a lot of them can be splitted in several lines) and easy to read. Minimalism is also welcome, but readability and coherence, helpful
+        both for humans and for AI, is more important. The syntax is based mainly on expressions, something that will be understood later on. The aim
+        of that is to resemble mathematics and to forget about syntax when writing, since symbols is the only thing that matters.
+    />
 
-    ## declarations (constant by default)
+
+    <> declarations (constant by default)
 
     d1 = 1
     d2: Int32 = 2
-    def d3: Int64 ## takes the default value until assigned, for integers it is -1, for naturals 1, for floats -0.5, for unsigned floats (Float32.Positive) 0.5
-    d3 = 3
+    def d3: Int64 <> definition
+        </
+            Takes the default value until assigned, for integers it is -1, for naturals 1, for floats -0.125,
+            and for a new type, you can override __defaultValue__. The values are chosen so that they represent the type,
+            so -1 for integers to differentiate them from naturals (1), aka unsigned ints in other languages, and
+            -0.125 for floats to show it has decimal digits and that it can be negative. The default value is not 0
+            to be able to tell the difference. The maximum, minimum and these other things are atributes from the type, like
+            Nat64.maxValue or Flot32.minValueOverZero from typical numbers. You also have, for instance, in Float32,
+            Float32.floatNaN, and the methods .is_NaN() and .is_a_number(), to manage NaN (not a number).
+        />
+    d3 = 3 <> then, we can assign the value for the defined identifier (the definition can be understood as some sort of interface of the type)
 
-    %% Let's create an alias so that we don't need to type so much. This is its doc
+    ::: Let's create an alias so that we don't need to write so much. This text is its documentation.
     use Int = Int64
 
-    ## prefixes can be either before or in the type of an identifier
+    ::: another alias, to unlink the function from the namespace so that we write less
+    use std.io.stdOut.print <> the last field is the introduced alias, equivalent to use print = std.io.stdOut.print
 
-    var v1 = 1
-    v2: var = 2
-    v3: var Int = 3
-    def var v4: Int
-    v4 <- 4 ## assignment for vars is by the arrow operator, foolishly called varrow (var + arrow)
+    @[<allow.prefix_before_name(true)>]
 
-    ## multi type definition
-    def a: Int, b: Int, c: Int
+    <> prefixes can be either before or in the type of an identifier, although in the type is better
+    <> const is not needed, since it is the default, but we will use it for the examples
+    <> local makes the identifier local bounded, therefore unreachable from an inner scope (private, the default, allows frowing down)
+    <> local things can not be used for closures
 
-    ## multi value initialization
-    a =<- b =<- c = 5
+    ::: the prefix is before the data type
+    d4: const Int = 4
 
-    ## Pointers
+    ::: no type is required to write the prefix
+    d5: local = 5
 
-    %% a pointer to an integer64
-    int1 = 1
-    var int2 = 2
-    ptr1 = ^int
-    ptr2: ^Int = ptr1
-    ptr3: ^Int = ptr1.copy() ## executes the copy of the pointed object, returning the pointer to the copy
+    ::: although not recommended (and corrected by the formatter, mnmfmt), you can write the prefix
+    ::: as a prefix to the identifier instead of as a prefix to the type
+    local const d6 = 6
 
-    ## in Monom, to test whether 2 objects are the same, compare their pointers, like ^obj1 == ^obj2
+    ::: a mix of them in different positions is allowed too
+    const d7: local = 7
 
-    ptr4: ^var Int = ^int2
-    def var ptr5: ^var Int ## or ptr5: var ^var Int
-    ptr5 = ^int2; int3 = 3 ## ; is like EOL
-    ptr5 <- ^int3
-    ptr4.^ <- ptr1.^
+    ::: the type, as expected, is written the same way always, with or without prefixes
+    local d8: local Int = 8
 
-    ## functions: all of them have just one argument (arity == 1), and can be applied by a blank space like f x
 
-    %% 0 args
-    f1() = true
+    <> functions: all of them have just one argument (unary), and are applied by a blank space like f x
 
-    %% 1 args
+    ::: 0 arguments
+    f1() = print "this is f1"
+    </
+        also valid as:
+        f1 none = print "this is f1"
+        f1(none) = print "this is f1"
+    />
+
+    ::: 1 argument
     f2 x = x + 1
-    do f2 1 + 3 #/ because of the precedence, this expression is equivalent to (f2 1) + 3
-        it is because if you see f2(1) + 3 you expect that the function is grouped like (f2 1) + 3 and NOT like f2 ((1) + 3)
 
-    f3(x) = x * 321 ## the parentheses have no effect
+    _ = f2 1 + 3 </ Because of the precedence, this expression is equivalent to (f2 1) + 3
+        since if you see f2(1) + 3 you would expect that the function is grouped like (f2 1) + 3 and NOT like f2 ((1) + 3).
+        If you prefer, you can use parentheses, it means the same, just applied to parentheses that return x />
 
-    nothing ## nothing is the only value, of type Nothing, which can be ignored
+    f3(x) = x * 321 <> the parentheses have no effect here
 
-    std.io.stdOut.println "Hello World!" ## returns nothing
+    nothing <> type Nothing (with value nothing), which can be ignored
 
-    ## to ignore something that is not nothing, i.e. something (simply called thing, from Thing), the do word is used
+    std.io.stdOut.println "Hello World!" <> returns nothing, so the result can be ignored
+
+    <> to ignore something that is not nothing, i.e. something (simply called thing, from Thing), the do word is used
     do f1()
+    do f3(5) <> you can call with parentheses
 
-    %% in functions, the body ends with ; (EOL) but if a declaration, a definition, use, import, export or a do statement follows, the next expression is included
-    f4(x) = ## since the equal expects a expression and it is not complete, EOL is skipped once
-        use std.io.stdOut .readln, .println ## a use expression to unlink readln and println from their namespace, shortening the path, EOL skipped
+    ::: in functions, the body ends with ; (EOL), but if a declaration, a definition, use, import, export or a do statement follows, the next expression is included
+    f4(x) = <> since the equal expects a expression and it is not complete, EOL is skipped
+        use std.io.stdOut .readln, .println <> a use expression to unlink readln and println from their namespace, shortening the path; EOL skipped
 
-        do f1() ## a do statement, EOL skipped
-        do println("You can call with parentheses, but it is not mandatory.") #/ here, do is not needed (println returns nothing),
-            but in order to continue the body of the function so that it does not end here, we will use do /#
+        ; <> equivalent to EOL, it is not skipped, just ; ; = ;, so it is considered the same as the last (skipped) EOL
+        <> the same with empty lines
 
-        def a: Int ## a declaration (or definition, in this case), EOL is skipped again
-        a = readln().length() ## the same, another declaration
-        a + ## the + waits to be complete
-        b ## b from the outside
-        + x ## this can only be complete if it follows the previous expression, it does NOT happen with -
+        do f1() <> a do statement, EOL skipped
+        do println("You can call with parentheses, but it is not mandatory.") </ here, do is not needed (println returns nothing),
+            but in order to continue the body of the function so that it does not end here, we will use do (a do statement can never
+            be the last expression of a function)
+            />
 
-    %% f4 could also be written like this:
-    f5(x) = use std.io.stdOut .readln, .println; do f1()
-do println("You can call with parentheses, but it is not mandatory."); def a: Int
-a = readln().length(); a +; b + x
+        def a: Int <> a declaration (or definition, in this case), EOL is skipped again
+        a = readln().get_length() <> again, another declaration
+        a + <> the + waits to be complete
+        b
+        + x <> this + can only be complete if it follows the previous expression, so for unary - use (-x) when written at the beginning of a line
 
-    ## but do not do it please! If the body of the function gets long, it is  better to wrap it in parentheses, like with this main function
+    ::: f4 could also be written like this...
+        f5 x = use std.io.stdOut .readln, .println;use{var b};;; do f1()
+                do println("You can call with parentheses, but it is not mandatory."); def a: Int
+    a = readln().length(); a +; b ; + x
 
-    %% for more than one argument, functions can take tuples
+    <> ...but do not do it please! If the body of the function gets long, it is better to wrap it in parentheses, like with this main function
+
+    ::: the formatted function would look like this:
+    f4(x) =
+        use std.io.stdOut .readln, .println
+
+        do f1()
+        do println("You can call with parentheses, but it is not mandatory.")
+
+        def a: Int
+        a = readln().get_length()
+        a + b + x
+
+
+    ::: for more than one argument, functions can take tuples
     f6(x, y) = x + y
 
-    %% a lambda function
+    ::: a lambda function
     lam1 = fun x = x + 1
 
-    %% another one
-    def lam2: Int -> Int
-    lam2 = a => a * 5 ## called soft lambdas, the reason will be understood later
+    ::: formatted
+    lam2 =
+        fun x = x + 1
 
-    %% a real/hard lambda with auto arguments in a tuple
-    lam3 =
-        fun = $1 +
-            $2 ## using the pipe
-            |> fun = $$1 + 234 ## every nested auto-args lambda gains one $ in its auto arguments
+    ::: another one
+    def lam3: Int -> Int
+    lam3 = (a => a * 5) <> called soft lambdas (the reason will be understood later), take just one arg, and it is recommended to wrap them in parenthesis
 
-    %% Hard lambdas can call themselves lambda, but only the inner one (soft ones can not be recursive at all, that is why they can be called soft).
-    %% Here we can see how auto expression completion is helpful to write minimalist functions (remember indentation does not matter!)
+    ::: another soft lambda
+    lam4 =
+        x => -21 * x
+
+    ::: a real/hard lambda with auto arguments in a tuple ($1 is the first, $2 the second...)
+    lam5 =
+        fun = <> auto arguments of a tuple, if you want a 0 arguments lambda, use "fun() ="
+            $0 + $1 <> using the pipe, which has low precedence so that you can connect code with operators, like here (passing the result of +)
+            |> fun = $$0 + 234 <> every nested auto-args lambda gains one $ in its auto arguments
+
+    ::: Multiline can be done like this too, with single line doc after other.
+    ::: Hard lambdas can call themselves lambda, but only the inner one (soft ones can not be recursive at all, that is why they can be called soft).
+    ::: Here we can see how auto expression completion is helpful to write minimalist functions (remember indentation does not matter!)
     factorial n =
-        (1, n) |> ## again, this expects an expression, so it skips the EOL
+        (1, n) |> <> again, this expects an expression, so it skips the EOL, like above |> at the beginning linked to the previous expression
         fun (acc, num) =
             match num
-            to 1 => acc #/ ends with EOL, except if a to expression is next, in which case the code between the arrow and the next  to
-            will behave like if it were within parentheses (a block), we will see how to tackle the problem of nested match expressions later /#
+            to 1 => acc </ ends with EOL, except if a to expression is next, in which case the code between the arrow and the next  to
+                will behave like if it were within parentheses (a block), we will see how to tackle the problem of nested match expressions later />
             to else =>
-                lambda.(num=num-1, acc=acc*num)## since anything can be after a function, to call with arguments the dot is required. Only valid for tuples
+                lambda(acc * num, num - 1)
 
     use std.io.stdOut.println
 
-    ## nested match, how to differentiate whether a to belongs to one or another? by default, to the depest one
-    println match ptr2.^ ( ## if parenthesis + to is found, the body of the match extends until the block is closed
-        to 0 | 1 => 0 ## you can write to right after the 0, since it is a delimiter, but it is not fancy; a example in the next line
-        to if ptr2.^ > 1 &&< 4 => 1 to if ptr2.^ >= 4  &&<= 100 => 2 ## not fancy, if you want to do so, use a semicolon at least
-        to 101 => 3 ; to if ptr2.^ > 101 => 4 ## this is better
-    )
+    <> nested match, how to differentiate whether a to belongs to one or another? by default, to the deepest one
+    nested_match(x: Int) =
+        match x
+        to Int<12 => "less than 12"
+        to if x >= 12 && <= 66 => <> * see the comment after this function
+            match x ( <> if parenthesis and to is found (no matter the space or EOLs between), the parentheses delimit the body of the match expression
+            to in 12, 13, 14, 15, ...[6, 7, 8, 9].map(n => n + 10) => "in 12-19, 'to in' calls the .has method of the object received,"
+                <+> "otherwise we would have matched to a tuple or an array"
+            to if [20..:(10)101].map(d => ...([0..==9].map n => d + n)).has x => "20-100"
+            )
+        to if > 66 => "greater than 66" <> again, a to branch in the outer match, see **
 
-    ## x > y && < z  where > and < mean  >, <, >= or <=  is equivalent to x > y && x < z, the formatter prefers it like this: &&<= (together)
+    </
+        *:
+        && followed by >, >=, <, <=, ==, !=, ~== or ¬ takes the first element of the previous expression (with the priority level of &&) to the middle,
+        so x < y && > z is understood as (x < y) && (x > z), it is just syntactic sugar
+        **:
+        The use of >, >=, <, <=, ==, !=, or ~== as prefix compares with the object of the match, so that you do not need to write a lot,
+        so match x to if > k => is like match x to if x > k
+    />
 
-    #/
-        we use the to if construction to check a boolean condition rather than a pattern, something important since when we introduce
-        the inverse functions it is important to distinguish
-            to f x => ... ## we take x using f.__inverse__ and
-            to if f x => ... ## we eval if (f x) is true
-    /#
+    :/
+        an example of lambda in which we want to call the outer lambda
+        notice how we get rid of unnecessary parentheses: the body seems delimited by space like in Python, but it is not (safer against copy-paste errors)
+    /:
+    collatz number : Int -> Nat64 =
+        is_even n = n % 2 == 0 ; is_odd(n) =
+                                    n % 2 == 1 <> thanks to the syntax, we can indent like if we were writing in a paper
 
-    %% multiline can be done like this too, with one after the other
-    %% an example of lambda in which we want to call the outer lambda
-    %% notice how we get rid of unnecessary parentheses, the body seems delimited by space like in Python, but it is not (safer against copy-paste errors)
-    collatz number : Int -> Int =
-        is_even n = n % 2 == 0 ; is_odd n =
-                                    n % 2 == 1 ## thanks to the syntax, we can indent like if we were writing in a paper
-        num = if ([1, 2, 4, -1, -2, -4].constains number) return 0 ## early return
-            else number #/
+        ::: a bridge value
+        num =
+            if ([1, 2, 4, -1, -2, -4].has number) return 0 <> early return from the function
+            else
+                number </
                         the result of the if expression as a whole is passed to the pipe,
                         although return is an early return to avoid the strictness of the last expression,
-                        so that branch is known to scape the pipe
-                    /#
-            |> __.abs() ## we refer in a pipe the value passed through as __, here we take the abs using a function/method from Int (Int64) and assign it to num
-        even = fun(times: Int, n: Nat64): Int -> Int =
-            even = lambda ## inside, even does not exist yet, we are not shadowing even, and we can not refer to the outer one
+                        so, that branch, is known to scape the pipe (returns from the function, i.e. collatz)
+                    />
+            |> __.abs() <> we refer in a pipe to the value passed through as __, here we take the abs using a function/method from Int (Int64) and assign it to num
+
+        even_func = fun(times: Int, n: Nat128): (Int, Nat128) -> Int = <> with the full type written
+            even = lambda <> we store the current lambda
             n2 = n / 2
             match n2
             to 1 | 2 | 4 => times
             to if is_even n2 => lambda(times + 1, n2)
-            to if is_odd n2 => (fun(times2, nn) =
-                n3 = 3 * nn + 1
-                match n3
-                to 1 | 2 | 4 => times2
-                to if is_even n3 => even(times2 + 1, n3)
-                to if is_odd n3 => lambda(times2 + 1, n3)
-            )(times + 1, n2) ## we need to use parentheses to wrap the lambda and call it right after its definition
-        if (is_even num) even(0, num) else even (-1, 2 * num) ## last expression is returned, it is not inside the last to expression (it finished with the EOL)
+            to if is_odd n2 => (
+                fun(times2, nn) :-> Int =
+                    n3 = 3 * nn + 1
+                    match n3
+                    to 1 | 2 | 4 => times2
+                    to if is_even n3 => even(times2 + 1, n3)
+                    to if is_odd n3 => lambda(times2 + 1, n3)
+                )(times + 1, n2) <> we need to use parentheses to wrap the lambda and call it right after its definition
+        if (is_even num) even_func(0, num) else even_func(-1, 2 * num) <> last expression returned, this if expression in this case
 
-    ## Now, we will se how to write types in functions (it is the same for hard lambdas, just consider fun the name of the function)
+    <> Now, we will see how to write types in functions (it is the same for hard lambdas, just consider fun the name of the function)
 
-    %% you can do it like this, taking on account the thin short arrows are associative by the right
-    def g1: Int -> Int -> Int ## is the same as def g1: Int -> (Int -> Int)
+    ::: you can do it like this, taking on account the thin short arrows are associative by the right
+    def g1: Int -> Int -> Int <> is the same as def g1: Int -> (Int -> Int)
     g1 x = fun y = x + y
     println(g1 int1 int2)
 
-    %% this is the type of the function
+    ::: this is the type of the function, not of the argument
     g2 x : Int -> (Int, Int) = (x, x ** 2)
 
-    %% now, the type of the argument
-    g3 (x : Int) = (x, x ** 2)
+    ::: now, the type of the argument
+    g3 (x: Int) = (x, x ** 2)
 
-    %% all!
-    g4 (x: Int) : Int -> (Int, Int)
+    ::: all!
+    g4 (x: Int) : Int -> (Int, Int) = (x, x - 12234)
 
-    %% when you write a function, it is pattern matching, and the type is the one of the function, you need parentheses to write the type of the arguments
-    g5 [a, b: Int, [c, d]: [Int, Int]] : [Int, Int, [Int, Int]] -> Int ## usually, the type is not required
-    = a + b + c + d
+    ::: you can write the return type and leave the argument one for the inference
+    g5 x :-> Int = 22 * x
 
-    ## Not finished yet!
+    ::: when you write a function, it is pattern matching, and the type is the one of the function (you need parentheses to write the type of arguments)
+    g6 [a, b: Int, [c, d]: [Int, Int]] : [Int, Int, [Int, Int]] -> Int <> usually, the type is not required
+    = a + b + c + d <> although not recommended, you can write the = symbol below
+
+    ::: as said, if there are no parenthesis, the type is the one of the function...
+    g7 x : Int -> Int = x * 5
+
+    ::: ...while here we can see the type of the argument
+    g8(x: Int): -> Int -> Int =
+        <> remember: in lambdas, it works the same way
+        fun y : Int -> Int = x * y
+
+    ::: for lambdas with auto arguments, the type is the one of the lambda as well
+    g9 =
+        fun : Int -> Int = $0 + 3
+
+    <> Not finished yet!
 )
