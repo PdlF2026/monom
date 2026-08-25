@@ -1,4 +1,4 @@
-<> Monom 0.1, a programming language, originally designed by Pablo de la Fuente Sancho, 2025
+<> Monom 0.1, a programming language, originally designed by Pablo de La Fuente Sancho, 2025
 
 
 <> This is a single line comment
@@ -280,5 +280,122 @@ main() = (
     g9 =
         fun : Int -> Int = $0 + 3
 
-    <> Not finished yet!
+
+    <> arrays and tuples
+
+    ::: an array
+    a1: [Int, Int, Int] = [1, 2, 3]
+
+    ::: with type
+    a2: [Int, Int, Bool] = [1, 2, true]
+
+    elem1 = a1[0] <> the first element is at index 0
+    elem2 =
+        elem = a1.get(1) <> a safe method to get by element, returns an optional
+        match elem
+        to Int => elem
+        to else => do println "this will never happen!"; 0
+
+    ::: for long sizes, the type is written as the lenght in square brackets with colon at the beginning
+    a3: [:10]Int = Array.repeat_times(0, 10)
+
+    <> the prefix can be either for the elements or for the array itself (depending on the prefix, it extends to the elements or not)
+
+    ::: local elements, therefore a local array
+    a4: [:local 3]Int = [1, 2, 3]
+
+    ::: as for the 'local' prefix, the meaning is the same both for the array and for the elements
+    a5: local [:3]Int = [1, 2, 3]
+
+    ::: the same, talking about the elements in its type
+    a6: [:3](local Int) = [1, 2, 3]
+
+    ::: a tuple is an "open" array
+    t1 = (1, 2, 3)
+
+    ::: indeed, to spread/open an array, use the spread operator
+    t2: (Int, Int, Int) = ...a1
+
+    ::: in the type it works the same
+    t3: ...[:2]Int = ...[1, 2]
+
+    ::: and access is just the same as for normal arrays, which can be called bricks (because [...] looks like a brick)
+    println t3[1]
+
+    ::: nested tuples get plain
+    a7: ...[:5]Int = (1, 2, (3, 4), 5)
+
+    ::: to turn a tuple into a brick, just wrap it in brackets
+    a8: [:3]Int = [t2]
+
+    ::: this will evaluate to true
+    thisIsTrue: Bool =
+        [1, 2, 3, 3 + 1] == [(1, 2, (3, 4))]
+
+    ::: the type of the array can be left to inference, just specifying the length
+    a9: [:2] = [1, 2]
+
+    ::: or no type, of course
+    a10 = [0, ...a9, 3]
+
+
+    <> members for modules
+
+    mod1: Int = 1 <> this is a number
+
+    ::: and this a member attribute for mod1
+    mod1.member1: Int = 2
+
+    ::: methods are allowed too
+    mod1.double() : () -> Int = mod1 * 2
+
+    ::: my member
+    mod1.member2: my Int = 3
+
+    ::: transfering the base/root (mod1) along with the members, except "his" members
+    mod2 = mod1
+    do mod2.double() <> works
+
+    <> mod2.member2 does not exist!
+
+    ::: you can also overload operators (if done later, mod1 will not be affected, neither mod2 if mod1 is altered)
+    mod1[n: Int] = mod1 * n <> method .___[arg]___ overloaded
+
+    <> if an identifier starts by ___, until it ends with ___ too, skipping symbols (except blank space)
+
+    ::: this is an independent method, nothing has to do with the one from mod1
+    mod2[n: Int] : Int -> Int = n + mod2 * 5
+
+    ::: members can have members too!
+    mod1.member1.submember: Float32 = -45.5
+
+    ::: prefix my in submembers affects the submember itself, even if members are transferred to another field from a base
+    mod1.member1.submember2: my = 0
+
+    ::: does not have submember2
+    mod1.member1.mem = mod1.member1.submember2
+
+    use mod1.member1.submember2
+
+    ::: neither has submember2
+    mod1.mem = submember2
+
+    mod2.mem = 0
+
+    ::: scoped my, members of mod2 and of mem inherit the member
+    mod2.mem: my{mod2, mem} = 0
+
+    mod2.mem2 = mod2.mem
+    mod2.mem.inheritsToo = mod2.mem
+
+    ::: stays for mem and submembers
+    mod2.mem.submem: my{mem...} = 0
+
+    ::: in case of ambiguity, the inner one is chosen
+    mod2.mem.mem: my{mem} = 0
+
+    ::: to choose other, you must write the path
+    mod2.mem.mem.mem: my{mod2.mem} = 0
+
+    <> usually, the conventional my is used (anyway, it is easy since you only have to list the ones which can inherit the member)
 )
