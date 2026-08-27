@@ -117,7 +117,7 @@ main() = (
     f4(x) = <> since the equal expects a expression and it is not complete, EOL is skipped
         use std.io.stdOut .readln, .println <> a use expression to unlink readln and println from their namespace, shortening the path; EOL skipped
 
-        ; <> equivalent to EOL, it is not skipped, just ; ; = ;, so it is considered the same as the last (skipped) EOL
+        ; <> equivalent to EOL, it is not skipped, just ; ; is ;, so it is considered the same as the last (skipped) EOL
         <> the same with empty lines
 
         do f1() <> a do statement, EOL skipped
@@ -133,7 +133,7 @@ main() = (
         + x <> this + can only be complete if it follows the previous expression, so for unary - use (-x) when written at the beginning of a line
 
     ::: f4 could also be written like this...
-        f5 x = use std.io.stdOut .readln, .println;use{var b};;; do f1()
+        f5 x = use std.io.stdOut .readln, .println;use{b};;; do f1()
                 do println("You can call with parentheses, but it is not mandatory."); def a: Int
     a = readln().length(); a +; b ; + x
 
@@ -199,15 +199,15 @@ main() = (
                 <+> "otherwise we would have matched to a tuple or an array"
             to if [20..:(10)101].map(d => ...([0..==9].map n => d + n)).has x => "20-100"
             )
-        to if > 66 => "greater than 66" <> again, a to branch in the outer match, see **
+        to if > 66 => "greater than 66" <> again, a to branch in the outer match (and see **)
 
     </
         *:
         && followed by >, >=, <, <=, ==, !=, ~== or ¬ takes the first element of the previous expression (with the priority level of &&) to the middle,
         so x < y && > z is understood as (x < y) && (x > z), it is just syntactic sugar
         **:
-        The use of >, >=, <, <=, ==, !=, or ~== as prefix compares with the object of the match, so that you do not need to write a lot,
-        so match x to if > k => is like match x to if x > k
+        The use of >, >=, <, <=, ==, !=, or ~== as prefix compares with the object of the match, so that you do not need to write a lot, so
+        match x to if > k => is like match x to if x > k
     />
 
     :/
@@ -258,7 +258,7 @@ main() = (
     ::: now, the type of the argument
     g3 (x: Int) = (x, x ** 2)
 
-    ::: all!
+    ::: everything written!
     g4 (x: Int) : Int -> (Int, Int) = (x, x - 12234)
 
     ::: you can write the return type and leave the argument one for the inference
@@ -291,13 +291,20 @@ main() = (
 
     elem1 = a1[0] <> the first element is at index 0
     elem2 =
-        elem = a1.get(1) <> a safe method to get by element, returns an optional
+        elem = a1.get(1) <> a method to get by element, returns an optional (unless [], which requires the index is correct)
         match elem
         to Int => elem
-        to else => do println "this will never happen!"; 0
+        to else => (do println "this will never happen!"; 0) <> last expression from the block (parentheses) is returned
 
     ::: for long sizes, the type is written as the lenght in square brackets with colon at the beginning
     a3: [:10]Int = Array.repeat_times(0, 10)
+
+    ::: whatever size (has a little overhead since it retains its size)
+    anySizedArray: []Int = [1, 2, 3, 4, 5] <> it is more usefull in functions
+
+    double_array_of_any_size(arr: []Int) = arr.map n => 2 * n
+    do double_array_of_any_size a1 <> [2, 4, 6]
+    do double_array_of_any_size anySizedArray <> [2, 4, 6, 8, 10]
 
     <> the prefix can be either for the elements or for the array itself (depending on the prefix, it extends to the elements or not)
 
@@ -307,7 +314,7 @@ main() = (
     ::: as for the 'local' prefix, the meaning is the same both for the array and for the elements
     a5: local [:3]Int = [1, 2, 3]
 
-    ::: the same, talking about the elements in its type
+    ::: the same, talking about the elements in its type (local does not care where it is)
     a6: [:3](local Int) = [1, 2, 3]
 
     ::: a tuple is an "open" array
@@ -316,7 +323,7 @@ main() = (
     ::: indeed, to spread/open an array, use the spread operator
     t2: (Int, Int, Int) = ...a1
 
-    ::: in the type it works the same
+    ::: in the type, the spread works the same
     t3: ...[:2]Int = ...[1, 2]
 
     ::: and access is just the same as for normal arrays, which can be called bricks (because [...] looks like a brick)
@@ -335,11 +342,23 @@ main() = (
     ::: the type of the array can be left to inference, just specifying the length
     a9: [:2] = [1, 2]
 
-    ::: or no type, of course
+    ::: or no type, of course (thanks to inference)
     a10 = [0, ...a9, 3]
 
+    ::: by .[ ] we can return a new version of an array
+    a11 = a9.[3, 4] <> a11 is [3, 4]
 
-    <> members for modules
+    a12 = a9.[9] <> a12 is [9, 2]
+
+    ::: in the array (both for values and for the type), we can refer the index by .[:indx]
+    a13 = a9.[.[:1] = 87] <> a13 is [1, 87]
+
+    ::: as said, in types it works too
+    a14: [.[:1] : Int] = [true, -4, false] <> the type is therefore [Bool, Int, Bool], and a14[1] is Int
+
+    <> ERROR: a15 = a13.[1, 2, 3] Out of range!
+
+    <> members
 
     mod1: Int = 1 <> this is a number
 
@@ -354,14 +373,14 @@ main() = (
 
     ::: transfering the base/root (mod1) along with the members, except "his" members
     mod2 = mod1
-    do mod2.double() <> works
+    do mod2.double() <> works! (we discard the returned value woth do)
 
     <> mod2.member2 does not exist!
 
     ::: you can also overload operators (if done later, mod1 will not be affected, neither mod2 if mod1 is altered)
     mod1[n: Int] = mod1 * n <> method .___[arg]___ overloaded
 
-    <> if an identifier starts by ___, until it ends with ___ too, skipping symbols (except blank space)
+    <> if an identifier starts by ___, until it ends with ___ too, accepts symbols as the name symbols (except blank space)
 
     ::: this is an independent method, nothing has to do with the one from mod1
     mod2[n: Int] : Int -> Int = n + mod2 * 5
@@ -371,6 +390,9 @@ main() = (
 
     ::: prefix my in submembers affects the submember itself, even if members are transferred to another field from a base
     mod1.member1.submember2: my = 0
+
+    ::: as a prefix, you can use it before the identifier
+    my mod1.member1.anotherSubmember = 0
 
     ::: does not have submember2
     mod1.member1.mem = mod1.member1.submember2
@@ -391,11 +413,94 @@ main() = (
     ::: stays for mem and submembers
     mod2.mem.submem: my{mem...} = 0
 
-    ::: in case of ambiguity, the inner one is chosen
+    ::: in case of ambiguity, the inner one is chosen (i.e. mod2.mem.mem and not mod2.mem)
     mod2.mem.mem: my{mem} = 0
 
     ::: to choose other, you must write the path
     mod2.mem.mem.mem: my{mod2.mem} = 0
 
     <> usually, the conventional my is used (anyway, it is easy since you only have to list the ones which can inherit the member)
+
+    ::: my works with types too
+    mod1.anotherMember: my{Float64} = 0
+
+    mod3: Float64 = 0
+    mod3 = mod1 <> it has .anotherMember!
+
+
+    <> array fields and structs
+
+    ::: arrays can have named fields so that we do not need to write or remember the index of what we want to get
+    s1 = [0, .field = 1] <> not all fields need to have name, sometimes we just need an array with an special position named
+
+    ::: the same in the type
+    s2: [Int, .field: Int] = s1 <> the fields must be named the same
+
+    <> and access works both with index and with name:
+    do s1[0]
+    do s1[1]
+    do s1.field
+    do s2.field
+    do s2[1]
+
+    ::: names can be nested
+    s3 = [
+        .a: Int = 1, <> a name with type
+        ::: documentation for the field
+        .b = 2,
+        3, <> no name
+        .c = [1, 2, 3], <> can be heterogeneus, but access will be a bit slower due to boxing in some cases (or the array might be bigger because of padding)
+        .d: [:2]Int = 4, <> the type is not neccesary
+        .d = 5, <> .d has now two elements (if extended like this, a field can only be next to itself, so [.a, .b, .a] is not allowed)
+        .e = 6 : Int, <> we can write the type of the expression (here, number 6), to refer to that one element of a field, here .e
+        .e: [...[:2]Int, .a: Int] = 7, <> yes, the spread works in types too
+        .e.a = 8,
+        9 <> a number
+    ]
+
+    do s3.e.a <> it works this way
+
+    ::: the syntax for new versions is the same
+    s4: [:]Int <> with [:] we let the length be inferred
+        = s3.[
+        2, <> positional
+        3, <> positional as well, does not matter it has a field name
+        .e.a = -512, <> by field, positional redefinition stops
+        .[:2] = 6, <> by index
+        .c = 9, <> by field again
+        .d.[:1] = 65 <> by the index in a field
+    ]
+
+    ::: in types, you can add a field to an index, here after .e.a, where there was a 9, we place the .f field
+    s5: [.[9]-> .f: Int] = s3 <> gains the field name
+
+    ::: a type alias
+    use CisAnArrayRestInts =
+        [:10]Int.[ <> the same we get a new version from an array with values, we can do it with types
+            .[s3.c.__offset__()] = [:3]Int <> we change the value of the element, which here was of type Type
+        ]
+
+    ::: you can also erase the fields, here, coerced to an array without fields, created in a fancy way to express "all Int except the element in the position of .c"
+    s6: CFieldPositionisAnArrayRestInts = s3
+
+
+    <> members again!
+
+    m1 = 0
+    m1.a = 0
+    m1.b = 0
+
+    ::: the same way we did with arrays, a new version can be obtained from a model by .{} (instead of by .[]), and there's no positional notion in members
+    m2 = m1.{.b = 1; .a = 2} <> ';' is used, not ',' since the comma is related with arrays and tuples, and members aren't
+
+    ::: you can also create new fields
+    m3 = m1.{
+        .c: Int = 0 <> no need to use ;, since EOL is equivalent
+        .d =
+            num = m1.a + 56
+            (-num) <> last expression returned
+    }
+
+    ::: you can NOT mix the change in fields with the creation of new ones, so do it in two steps
+    m4 = m1.{.a = 3; .b = 4}.{:/new field/: .x = 7; .y = 888} <> each step returns a new version
 )
