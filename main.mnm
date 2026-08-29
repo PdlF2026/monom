@@ -147,7 +147,7 @@ main() = (
         do println("You can call with parentheses, but it is not mandatory.")
 
         def a: Int
-        a = readln().get_length()
+        a = readln().length
         a + b + c <> last expression returned
 
 
@@ -194,11 +194,11 @@ main() = (
         match x
         to Int<12 => "less than 12"
         to if x >= 12 && <= 66 => <> * see the comment after this function
-            match x ( <> if parenthesis and to is found (no matter the space or EOLs between), the parentheses delimit the body of the match expression
+            match x { <> if curlies and to is found (no matter the space or EOLs between), the parentheses delimit the body of the match expression
             to in 12, 13, 14, 15, ...[6, 7, 8, 9].map(n => n + 10) => "in 12-19, 'to in' calls the .has method of the object received,"
                 ++ " otherwise we would have matched to a tuple or an array"
             to if [20..:(10)101].map(d => ...([0..==9].map n => d + n)).has x => "20-100"
-            )
+            }
         to if > 66 => "greater than 66" <> again, a to branch in the outer match (and see **)
 
     </
@@ -572,7 +572,7 @@ main() = (
     <><> doif: when an if has not an else (works as a statement from Java or C)
 
     doif true
-    then println "hey" <> and there is no else!
+    then println "hey" <> (until EOL) and there is no else!
 
     doif true {println "hey"} <> works
 
@@ -596,7 +596,7 @@ main() = (
 
     do (2 + 2)?? 4 ret true <> if 4, return true
 
-    do true?? none ret false <> the same as the first expression
+    do true?? none ret false <> the same as the first expression (true??ret false)
 
     do (2 + 3)?? 4 ret false else 5 ret true else 6 ret false
     else ret false <> else ret is like else() ret, the same as else none ret
@@ -637,7 +637,7 @@ main() = (
         In Monom, it is similar:
     />
 
-    <> (else() is the same as else none)
+    ::: (else() is the same as else none)
     abs_div1 x =
         -1 / x  when x < 0  else
         0       when x == 0 else
@@ -655,7 +655,8 @@ main() = (
 
     for i in ls do println i
 
-    for val, index in ls.val_index_pairs() do {
+    for elem in ls.val_index_pairs() do {
+        (val, index) = elem
         println i"\(index) = \(val)"
     }
 
@@ -665,6 +666,10 @@ main() = (
 
     for i in ls until i >= 3 do {
         println "always less than 3"
+    }
+
+    for i in ls while i > 0 until i >=3 do { { <> whileand until can be together
+        println "two conditions"
     }
 
     total = for i in ls return acc: Int = 0 do {
@@ -714,7 +719,7 @@ main() = (
         }
 
     ::: for loops are understood as a function, so they can be called recursively, and the arguments are passed to the next iteration
-    ::: the same with lambdas:
+    ::: the same with lambdas would look like this
     fib_sum_with_lambdas number =
         fib (a: Int, b: Int, acc: Int = 0, times: Int) =
             if(times >= number) acc else (
@@ -722,4 +727,11 @@ main() = (
                 fib(b, n, acc + n, times + 1)
             )
         fib(0, 1, 0, 0)
+
+    <> with arguemnts and iterator (if there are arguments, each iteration is called with the same as before, unless you use for.call)
+    for(previous: Int = 0, preprevious: Int = 0) i in ls do {
+        println i"\(i) ::: pre: \(previous), prepre: \(preprevious), total: \(previous + preprevious)"
+        <> ERROR: previous = preprevious <> a reasignation of the constant of the argument is NOT valid
+        for.call(preprevious, i)
+    }
 )
