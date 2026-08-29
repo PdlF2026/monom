@@ -483,6 +483,9 @@ main() = (
     <> elif
     do if(true) 1 elif false then 2 else {3} <> the formatter does not like this mix, but works the same
 
+    <> one style is better
+    do if(true) 1 elif(false) 2 else 3
+
     <> andif
     <> it is only evaluated if the previous condition was satisfied, avoiding an extra indent
     do if true {
@@ -524,7 +527,7 @@ main() = (
         9
     }
 
-    <> without andconditionals
+    <> without andconditionals:
     do if true {
         1
     } elif true {
@@ -582,45 +585,39 @@ main() = (
     then println "hey"
     doelif true
     then println "works as you expect"
-    doandelif true
-    then println "yes, it exists"
-    doandelse println "the else for the doelif"
     doelif true
     then println "and no else! ends at EOL"
-
-    doif(true) println "hey" doelse println "doelse exists as well"
+    ≤> there are no anddoif, anddoelif...
+    doif(true) println "hey" doelse println "doelse exists as well,"
+        ++ " but it is not relevant, since, if there is doelse, the same"
+        ++ " could be done with do if (a do applied to a full standard"
+        ++ " if conditional)"
 
     <><> value-ret conditionals
 
-    do true??ret false <> if none, the ret-value is returned
+    do true??false <> if none, the ret-value is returned
 
-    do (2 + 2)?? 4 ret true <> if 4, return true
+    do (2 + 2)??{4 => true} <> if 4, return true
 
-    do true?? none ret false <> the same as the first expression (true??ret false)
+    do true??{none => false} <> the same as the first expression (true??false)
 
-    do (2 + 3)?? 4 ret false else 5 ret true else 6 ret false
-    else ret false <> else ret is like else() ret, the same as else none ret
+    do (2 + 3)??{4 => false orif 5 => true orif 6 => false orif
+    none => false}
 
     <> formatted is better
-    do
-        (2 + 3)??
-            4 ret false else
-            5 ret true  else
-            6 ret false else
-            ret false
-
-    <> another option:
-    do
-        (2 + 3)?? {
-            4 ret false else
-            5 ret true  else
-            6 ret false else
-            ret false
-        }
+    do (2 + 3)??{
+        4 => false     orif
+        5 => true      orif
+        6 => false     orif
+        none => false
+    }
 
     <><> when conditional: like if in a different order
 
     do true when 2 == 3 - 1 else false <> until EOL
+
+    <> or:
+    do true when(2 == 3 - 1) false
 
     do true when
         is_even n = n % 2 == 0
@@ -647,14 +644,27 @@ main() = (
     abs_div2 x =
         -1 / x  when(x < 0)
         0       when(x == 0)
-        1 / x   when(x > 0) else()
+        1 / x   when(x > 0)()
+
+    ::: the previous ones are equivalent to this
+    abs_div3 x =
+        -1 / x when x < 0
+        else {
+            0 when x == 0
+            else {
+                1 / x when x > 0
+                else none
+            }
+        }
 
     <><> for loop
 
     ls = [1, 2, 3, 4]
 
-    for i in ls do println i
-
+    for i in ls do {
+        println i
+    }
+    
     for elem in ls.val_index_pairs() do {
         (val, index) = elem
         println i"\(index) = \(val)"
@@ -668,7 +678,7 @@ main() = (
         println "always less than 3"
     }
 
-    for i in ls while i > 0 until i >=3 do { { <> whileand until can be together
+    for i in ls while i > 0 until i >=3 do { <> while and until can be together
         println "two conditions"
     }
 
@@ -681,6 +691,7 @@ main() = (
         println "forever!!!"
     }
 
+    <> arguments for the loop
     for(i = 0) while i < 10 do {
         println i
         for.call(i + 1)
@@ -728,10 +739,16 @@ main() = (
             )
         fib(0, 1, 0, 0)
 
-    <> with arguemnts and iterator (if there are arguments, each iteration is called with the same as before, unless you use for.call)
+    <> with arguments and iterator
     for(previous: Int = 0, preprevious: Int = 0) i in ls do {
         println i"\(i) ::: pre: \(previous), prepre: \(preprevious), total: \(previous + preprevious)"
         <> ERROR: previous = preprevious <> a reasignation of the constant of the argument is NOT valid
         for.call(preprevious, i)
+    }
+
+    <> if there are arguments, each iteration is called with the same as before, unless you pass the new one
+    for(i = 1, c: Bool = false) while i < 20 do {
+        println i
+        doif(i == 4 && not c) for.call(c = true)
     }
 )
