@@ -1,0 +1,41 @@
+main() = (
+    use std.io.stdOut
+
+    <><><> command line arguments
+
+    use std.env
+    args = env.get_args().args
+    stdOut.add(
+        upperArgs = args.lazy.map(a => a.to_upper())
+        if upperArgs.has_any(["HI", "HELLO", "HEY"].___++___.map s => s ++ "!") {
+            x = "Hey!"
+        andif upperArgs.has "?" {x ++ "How are you?"}
+        } else {
+            "???"
+        }
+    )
+    stdOut.flush()
+
+    <><><> inline assembly (experimental)
+
+    values = assembly(ptr, val) "x86-64" use "rcx" return "rbx", "rax" {" <> one " and not three " are used to allow comments
+        mov [$ptr], $val <> allows comments!
+        add dword ptr [$ptr], 5
+        mov rax, $ptr
+        mov rbx, [rax]
+        mov rcx, 4
+        add rbx, rcx
+    "}
+    rbx = values[0]
+    rax = values[1]
+
+    <> you can also write where arguments must be
+    do assembly("rax" ptr, "rbx" val) "x86-64" use "rcx" {"""
+        mov [$ptr], $val
+        add dword ptr [$ptr], 5
+        mov rax, $ptr
+        mov rbx, [rax]
+        mov rcx, 4
+        add rbx, rcx
+    """}
+)
