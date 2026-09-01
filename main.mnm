@@ -8,10 +8,6 @@
     </
         It can be nested.
     />
-
-    Info:
-
-    <> I will name curly braces as curlies, for the sake of brevity.
 />
 
 ::: This is a single line doc comment.
@@ -28,15 +24,6 @@
 
 ::: Entry point for an executable
 main() = (
-    </
-        Monom is a high-to-low level language, combining functional, OOP and actors paradigms, along other features explained in this sample code.
-        The syntax is designed to be robust (not dependent on indent), intuitive (tries to resemble simple mathematics, and
-        to develop as much as possible from a little basis), comfortable (uses EOL (equivalent to ; in the syntax) as the separator between expressions,
-        but a lot of them can be splitted in several lines) and easy to read. Minimalism is also welcome, but readability and coherence, helpful
-        both for humans and for AI, is more important. The syntax is based mainly on expressions, something that will be understood later on. The aim
-        of that is to resemble mathematics and to forget about syntax when writing, since symbols are the only thing that matters.
-    />
-
 
     <><><> declarations (constant by default)
 
@@ -44,10 +31,10 @@ main() = (
     d2: Int32 = 2
     def d3: Int64 <> definition
         </
-            Takes the default value until assigned, for integers it is -1, for naturals 1, for floats -0.125,
+            Takes the default value until assigned. For integers it is -1, for naturals 1, for floats -0.125,
             and for a new type, you can override __defaultValue__. The values are chosen so that they represent the type,
             so -1 for integers to differentiate them from naturals (1), aka unsigned ints in other languages, and
-            -0.125 for floats to show it has decimal digits and that it can be negative. The default value is not 0
+            -0.125 for floats to show the number has decimal digits and that it can be negative. The default value is not 0
             to be able to tell the difference. The maximum, minimum and these other things are atributes from the type, like
             Nat64.maxValue or Flot32.minValueOverZero for typical numeric types. You also have, for instance, in Float32,
             Float32.float32NaN, and the methods .is_NaN() and .is_not_NaN(), to manage NaN (not a number).
@@ -60,10 +47,10 @@ main() = (
     ::: another alias, to unlink the function from the namespace so that we write less
     use std.io.stdOut.print <> the last field is the introduced alias, equivalent to write use print = std.io.stdOut.print
 
-    <> prefixes can be either before or in the type of an identifier, although in the type is better
-    <> const is not needed, since it is the default, but we will use it for the examples
+    <> prefixes can be either before or in the type of an identifier (it is preferable in the type, when it is complex)
+    <> const is not needed, since it is the default, but we will use it for the examples before introducing other prefixes
     <> local makes the identifier local bounded, therefore unreachable from an inner scope (private, the default, allows flowing down to inner scopes)
-    <> local things can not be used for closures, along other restrictions which might be helpful sometimes
+    <> local identifier from functions can not be used for closures of the scope, along other restrictions which might be helpful sometimes
 
     ::: the prefix before the data type
     d4: const Int = 4
@@ -77,34 +64,25 @@ main() = (
     ::: a mix of them in different positions is allowed too
     const d7: local = 7
 
-    ::: the type, as expected, is written the same way always, with or without prefixes
+    ::: the type, as expected, is written the same way, both with or without prefixes
     local d8: const Int = 8
 
     ::: and this is valid too
     local d9: Int = 9
 
 
-    <><><> functions: all of them have just one argument (unary), and are applied by a blank space like f x
+    <><><> functions
 
     ::: 0 arguments
-    f1() = print "this is f1\n"
-    </
-        also valid as:
-        f1 none = print "this is f1"
-        f1(none) = print "this is f1"
-    />
+    f1() = print("this is f1\n")
+    <> also valid as f1(none) = print("this is f1")
 
     ::: 1 argument
-    f2 x = x + 1
+    f2(x) = x + 1
 
-    </
-        Because of the precedence, this expression is equivalent to (f2 1) + 3
-        since if you see f2(1) + 3 you would expect that the function is grouped like (f2 1) + 3 and NOT like f2((1) + 3).
-        If you prefer, you can use parentheses, it means the same, just applied to parentheses that return x
-    />
-    _ = f2 1 + 3 <> the same as (f2 1) + 3
+    <> f(x) + y is equivalent to (f(x)) + y
 
-    f3(x) = x * 321 <> the parentheses have no effect here
+    f3(x) = x * 321
 
     nothing <> type Nothing (with value nothing), which can be ignored
 
@@ -115,9 +93,9 @@ main() = (
     <> to ignore something that is not nothing, i.e. something (simply called thing, from Thing), the do word is used
     f1() <> returns nothing
     do f2(6531112)
-    do f3 5 <> you can call without parentheses
+    do f3(5)
 
-    ::: in functions, the body ends with ; (EOL), but if a declaration, a definition, use, import, export or a do statement follows, the next expression is included
+    ::: the body ends with ; (EOL), but if a declaration, a definition, use, import, export, a do statement... follows, the next expression is included
     f4(x) = <> since the equal expects a expression and it is not complete, EOL is skipped
         use std.io.stdOut .readln, .println <> a use expression to unlink readln and println from their namespace, shortening the path; EOL skipped
 
@@ -129,26 +107,26 @@ main() = (
             here, do is not needed (println returns nothing), but in order to continue the body of the function, so that it does not end here,
             we will use do (a do statement can never be the last expression of a function)
         />
-        do println("You can call with parentheses, but it is not mandatory.")
+        do println("Hello!")
 
         def a: Int <> a declaration (or definition, in this case), EOL is skipped again
         a = readln().get_length() <> again, another declaration
-        a + <> the + waits to be complete, EOL is skipped
+        a + <> the + awaits to be complete, EOL is skipped
         b
         + x <> this + can only be complete if it follows the previous expression, so, for unary - use (-x) when written at the beginning of a line
 
     ::: f4 could also be written like this...
-    f5 x = use std.io.stdOut .readln, .println;;do f1();do println("You can call with parentheses, but it is not mandatory.")
+    f5(x) = use std.io.stdOut .readln, .println;;do f1();do println("Hello!")
     def a: Int; a = readln().get_length();   a + ; b +x
 
     <> ...but do not do it please! If the body of the function gets long, it is better to wrap it in parentheses, like with this main function
 
     ::: the formatted function without comments would look like this:
-    f6 x =
+    f6(x)=
         use std.io.stdOut .readln, .println
 
         do f1()
-        do println("You can call with parentheses, but it is not mandatory.")
+        do println("Hello!")
 
         def a: Int
         a = readln().get_length()
@@ -159,11 +137,11 @@ main() = (
     f6(x, y) = x + y
 
     ::: a lambda function
-    lam1 = fun x = x + 1
+    lam1 = fun(x) = x + 1
 
     ::: formatted
     lam2 =
-        fun x = x + 1 <> fun(x) = x + 1 is valid too
+        fun(x) = x + 1
 
     ::: another one
     def lam3: Int -> Int
@@ -171,7 +149,7 @@ main() = (
 
     ::: another soft lambda
     lam4 =
-        x => -21 * x
+        (x, y) => -21 * (x + y) <> still one argument, a tuple
 
     ::: a real/hard lambda with auto arguments in a tuple ($1 is the first, $2 the second...)
     lam5 =
@@ -182,27 +160,27 @@ main() = (
     ::: Multiline can be done like this too, with single line doc after other.
     ::: Hard lambdas can call themselves lambda, but only the inner one (soft ones can not be recursive at all, that is why they can be called soft).
     ::: Here we can see how auto expression completion is helpful to write minimalist functions (remember indentation does not matter!)
-    factorial n =
+    factorial(n) =
         (1, n) |> <> again, this expects an expression, so it skips the EOL, like above |> at the beginning linked to the previous expression
         fun(acc, num) =
-            match num
-            with 1 => acc <> ends with EOL
-            with else =>
-                lambda(acc * num, num - 1)
+            match num with
+            | 1 => acc <> ends with EOL
+            | else =>
+                lambda(acc * num, num - 1) <> ends with EOL, after skipping a line to complete the arrow
 
     use std.io.stdOut.println
 
-    <> nested match, how to differentiate whether a with statement belongs to one or another? by default, to the deepest one
+    ::: nested match: how to differentiate whether a pattern expression belongs to one or another? by default, to the deepest one
     nested_match(x: Int) =
-        match x
-        with Int<12 => "less than 12"
-        with if x >= 12 && <= 66 => <> * see the comment after this function
+        match x with
+        | Int<12 => "less than 12"
+        | if x >= 12 && <= 66 => <> * see the comment after this function
             match x { <> if curlies are found (no matter the space or EOLs between), the parentheses delimit the body of the match expression
-            with in 12, 13, 14, 15, ...[6, 7, 8, 9].map(n => n + 10) => "in 12-19, 'with in' calls the .has method of the object received,"
-                ++ " otherwise we would have matched with a tuple or an array"
-            with if [20..:(10)101].map(d => ...([0..==9].map n => d + n)).has x => "20-100"
+            | in 12, 13, 14, 15, ...[6, 7, 8, 9].map(n => n + 10) => "number between 12 and 19, '| in' calls the .has method of the object received,"
+                ++ " otherwise we would have matched against a tuple or an array"
+            | if [20..:(10)101].map(d => ...([0..==9].map(n => d + n))).has(x) => "20-100"
             }
-        with if > 66 => "greater than 66" <> again, a with branch in the outer match (and see **)
+        | if > 66 => "greater than 66" <> again, a branch in the outer match (and see **)
 
     </
         *:
@@ -210,41 +188,53 @@ main() = (
         so x < y && > z is understood as (x < y) && (x > z), it is just syntactic sugar
         **:
         The use of >, >=, <, <=, ==, !=, or ~== as prefix compares with the object of the match, so that you do not need to write a lot, so
-        match x with if > k => (whatever) is like match x with if x > k => (whatever)
+        match x with | if > k => (whatever) is like match x with | if x > k => (whatever)
     />
+
+    ::: equivalent to the previous nested match
+    nested_match2(x: Int) =
+        match x with
+        | Int<12 => "less than 12"
+        | if x >= 12 && <= 66 => (
+            match x with
+            | in 12, 13, 14, 15, ...[6, 7, 8, 9].map(n => n + 10) => "number between 12 and 19"
+            | if [20..:(10)101].map(d => ...([0..==9].map(n => d + n))).has(x) => "20-100"
+        )
+        | if > 66 => "greater than 66"
 
     :/
         an example of lambda in which we want to call the outer lambda (stored in a value so that we can still refer to it in the nested lambda)
         notice how we get rid of unnecessary parentheses: the body seems delimited by space like in Python, but it is not (safer against copy-paste errors)
     /:
-    collatz number : Int -> Nat64 =
-        is_even n = n % 2 == 0 ; is_odd(n) =
-                                    n % 2 == 1 <> thanks to the syntax, we can indent like if we were writing in a paper
+    collatz(number): Int -> Nat64 =
+        is_even(n) = n % 2 == 0
+        is_odd(n) =
+            n % 2 == 1
 
         ::: a bridge value
         num =
-            if([1, 2, 4, -1, -2, -4].has number) return 0 <> early return from the function
+            if([1, 2, 4, -1, -2, -4].has(number)) return 0 <> early return from the function
             else
                 number </
                         the result of the if expression as a whole is passed to the pipe,
                         although return is an early return to avoid the strictness of the last expression,
                         so, that branch, is known to scape the pipe (returns from the function, i.e. collatz)
                     />
-            |> __.abs() <> we refer in a pipe to the value passed through as __, here we take the abs using a function/method from Int (Int64) and assign it to num
+            |> __.abs() <> we refer in a pipe to the value passed through as __, here we take the abs using a function/method from Int (Int64)
 
         even_func = fun(times: Int, n: Nat128): (Int, Nat128) -> Int = <> with the full type written
             even = lambda <> we store the current lambda
             n2 = n / 2
-            match n2
-            with 1 | 2 | 4 => times
-            with if is_even n2 => lambda(times + 1, n2)
-            with if is_odd n2 => (
+            match n2 with
+            | in 1, 2, 4 => times
+            | if is_even(n2) => lambda(times + 1, n2)
+            | if is_odd(n2) => (
                 fun(times2, nn) :-> Int =
                     n3 = 3 * nn + 1
-                    match n3
-                    with 1 | 2 | 4 => times2
-                    with if is_even n3 => even(times2 + 1, n3)
-                    with if is_odd n3 => lambda(times2 + 1, n3)
+                    match n3 with
+                    | in 1, 2, 4 => times2
+                    | if is_even(n3) => even(times2 + 1, n3)
+                    | if is_odd(n3) => lambda(times2 + 1, n3)
             )(times + 1, n2) <> we need to use parentheses to wrap the lambda and call it right after its definition
         if(is_even num) even_func(0, num) else even_func(-1, 2 * num) <> last expression returned, the if expression in this case
 
@@ -252,11 +242,11 @@ main() = (
 
     ::: you can do it like this, taking on account thin short arrows are associative by the right
     def g1: Int -> Int -> Int <> is the same as def g1: Int -> (Int -> Int)
-    g1 x = fun y = x + y
+    g1(x) = fun(y) = x + y
     println(g1 int1 int2)
 
-    ::: this is the type of the function, not of the argument
-    g2 x : Int -> (Int, Int) = (x, x ** 2)
+    ::: this is the type of the function
+    g2(x) : Int -> (Int, Int) = (x, x ** 2)
 
     ::: now, the type of the argument
     g3(x: Int) = (x, x ** 2)
@@ -264,20 +254,20 @@ main() = (
     ::: everything written!
     g4(x: Int) : Int -> (Int, Int) = (x, x - 12234)
 
-    ::: you can write the return type and don't write the argument's one
-    g5 x :-> Int = 22 * x
+    ::: you can write the return type
+    g5(x) :-> Int = 22 * x
 
-    ::: as said, if there are no parenthesis, the type is the one of the function...
-    g6 x : Int -> Int = x * 5
+    ::: another example
+    g6(x) : Int -> Int = x * 5
 
     ::: type of an argument in a lambda
     g7 =
         fun(x: Int) = x + 123
 
-    ::: ...while here we can see the type of the argument too
-    g8(x: Int): -> Int -> Int =
+    ::: ...while here we can see the type of the function too
+    g8(x: Int) :-> Int -> Int =
         <> remember: in lambdas, it works the same way
-        fun y : Int -> Int = x * y
+        fun(y) : Int -> Int = x * y
 
     ::: for lambdas with auto arguments, the type is the one of the lambda as well
     g9 =
@@ -295,21 +285,21 @@ main() = (
     elem1 = a1[0] <> the first element is at index 0
     elem2 =
         elem = a1[1]
-        match elem
-        with Int => elem
-        with else =>
-            do println "this case will never happen!"
+        match elem with
+        | Int => elem
+        | else =>
+            do println("this case will never happen!")
             0 <> returns 0
 
-    ::: for long sizes, the type is written as the lenght in square brackets with colon at the beginning
+    ::: for long sizes, the type is written as the lenght in square brackets with a colon at the beginning
     a3: [:10]Int = [0] ** 10
 
-    ::: whatever size (has a little overhead since it retains its size in runtime sometimes)
+    ::: any size (has a little overhead since it retains its size in runtime sometimes)
     anySizedArray: []Int = [1, 2, 3, 4, 5] <> this type is more useful in functions...
 
     ::: ...like this one
     double_elements_in_array_of_any_size(arr: []Int) =
-        arr.map n => 2 * n
+        arr.map(n => 2 * n)
 
     do double_elements_in_array_of_any_size(a1)             <> [2, 4, 6]
     do double_elements_in_array_of_any_size(anySizedArray)  <> [2, 4, 6, 8, 10]
@@ -356,20 +346,20 @@ main() = (
 
     <> ERROR: a15 = a13.[1, 2, 3] Out of range!
 
-    <> use ++ or .concat to extend arrays
+    <> use ++ to extend arrays
 
     a15: [:4]Int = a11 ++ a12
-    a16 = a11.concat a12
+    a16 = [3, 4, 9, 2]
     do a15 == a16 <> evals to true
 
-    ::: use [:] to express an array with some size (unlike [])
+    ::: use [:] to express an array with some size (unlike []), inferred
     a17: [:]Int = [1, 2, 3, 4, 5] <> a17: [:5]Int
 
 
     <><><> array fields and structs
 
     ::: arrays can have named fields so that we do not need to write or remember the index of what we want to get
-    s1 = [0, .field = 1] <> not all fields need to have name, sometimes we just need an array with an special position named
+    s1 = [0, .field = 1] <> not all fields must have name, sometimes we just need an array with an special position named
 
     ::: the same in the type
     s2: [Int, .field: Int] = s1 <> the fields must be named the same
@@ -414,13 +404,17 @@ main() = (
     ::: in types, you can add a field to an index, here after .e.a, in index 9, we place the .f field
     s5: [.[:9]->.f: Int] = s3 <> gains the field name, since it is a cast to a type whose index 9 has field f
 
+    ::: or...
+    s5_2 = s3.[.[:9]->.f]
+
     ::: a type alias
     use CisAnArrayRestInts =
         [:10]Int.[ <> the same way we get a new version from an array with values, we can do it with types
             .[:s3.c.__offset__()] = [:3]Int <> we change the value of the element at s3.c.__offset__(), which here was of type Type
         ]
 
-    ::: you can also erase the fields, here, coerced to an array without fields, created in a fancy way to express "all Int except the element in the position of .c"
+    ::: you can also erase the fields, here, coerced to an array without fields,
+    ::: created in a fancy way to express "array of Ints except the element in the position of .c"
     s6: CFieldPositionisAnArrayRestInts = s3
 
 
@@ -452,7 +446,7 @@ main() = (
     do if ( <> together is the correct format to differentiate this form from others, although if SPACE (...) is valid too
             aux(n: Int) = n.is_odd()
             aux([1, 2, 3].fold((acc, n) => acc + n))
-        ) <> the can be a block with many expressions, although it is not recommended
+        ) <> there can be a block with many expressions, although it is not recommended
         true else 4 <> the else body ends when its expression finishes...
         + 5 <> ...with EOL in this case, after completing the + operation
 
@@ -481,8 +475,7 @@ main() = (
     <> the if-curly syntax takes as the condition whatever it is before the curly, like a block
     do if
         aux(n: Int) = n.is_odd()
-        aux([1, 2, 3].fold((acc, n) => acc + n))
-        {
+        aux([1, 2, 3].fold((acc, n) => acc + n)) {
             true
         } else 4 + 5
 
@@ -518,7 +511,7 @@ main() = (
         }
     } else 3
 
-    <> andif can be after an elif clause, and have its andelifs and andelse
+    <> andif can be after an elif clause too, and have its andelifs and andelse
     do if true {
         1
     } elif true {
@@ -564,30 +557,30 @@ main() = (
     }
 
     </
-        IMPORTANT: and-contitionals do NOT accept if-parenthesis, since if there are enough conditions,
-        it is likely that they are not in a single line, complting with the if-curly format therefore.
+        IMPORTANT: and-contitionals do NOT accept if-parenthesis, since if there are many conditions,
+        it is likely that they are not in a single line, complying with the if-curly format therefore.
     />
 
     <><> doif: when an if has not an else (works as a statement from Java or C)
 
-    doif(true) println "hey" <> and there is no else!
+    doif(true) println("hey") <> and there is no else!
 
-    doif true {println "hey"} <> works
+    doif true { println("hey") } <> works
 
     doif true {
-        println "hey"
+        println("hey")
     } doelif true {
-        println "works as you expect"
+        println("works as you expect")
     } anddoelif true {
-        println "yes, it exists"
+        println("yes, anddoelif exists")
     } anddoelse {
-        println "the else for the doelif"
+        println("the else for the doelif")
     } doelif true { <> no and, so it is the elif for the main doif
-        println "and no else! ends at EOL"
+        println("and no else! ends at EOL")
     }
 
-    doif(true) println "hey" doelse println "doelse exists as well, although it makes no sense,"
-        ++ " since with a single do and then a standard if-conditional, it is the same as a doif with an else"
+    doif(true) println("hey") doelse println("doelse exists as well, although it makes no sense,"
+        ++ " since with a single do and then a standard if-conditional, it is the same as a doif with an else")
 
     <><> value-ret conditionals
 
@@ -597,7 +590,6 @@ main() = (
     do 5??{
         false <> the first case is triggered if the value is none
         orif 4 => false
-        orif 5 => true
         orif 6 => false <> if there is no else, and nothing matches, returns the original value (i.e. 5 in this case)
     }
 
@@ -606,11 +598,11 @@ main() = (
         orif 4 => false
         orif 5 => true
         orif 6 => false
-        else => "else case"
+        else => "else case" <> with an else, everything will match (or the else case), working as some sort of switch
     }
 
     <> we can capture the value, useful if it is the result of a complex expression we do not want to repeat
-    complex_operation n = n + 21
+    complex_operation(n) = n + 21
 
     do (3 * complex_operation(-66))??::nameOfTheValue{
         false
@@ -625,9 +617,12 @@ main() = (
     do true when 2 == 3 - 1 else false <> until EOL
 
     do true when <> until else, it is the body
-        is_even n = n % 2 == 0
-        is_even 4
+        is_even(n) = n % 2 == 0
+        is_even(4)
     else false
+
+    <> another option
+    do true when(2 == 3 - 1) false <> like having an else right after the last parenthesis
 
     </
         In maths, sometimes we write functions like this:
@@ -640,16 +635,16 @@ main() = (
     />
 
     <> (else() is the same as else none)
-    abs_div1 x =
+    abs_div1(x)=
         -1 / x  when x < 0  else
         0       when x == 0 else
         1 / x   when x > 0  else()
 
     ::: even better
-    abs_div2 x =
+    abs_div2(x) =
         -1 / x  when(x < 0)
         0       when(x == 0)
-        1 / x   when(x > 0) else()
+        1 / x   when(x > 0) none
 
     <> remember, else allows curly braces after it
 
@@ -657,71 +652,70 @@ main() = (
 
     ls = [1, 2, 3, 4]
 
-    for i in ls do println i
+    for i in ls do { println(i) }
 
     for elem in ls.val_index_pairs() do {
         (val, index) = elem
-        println i"\(index) = \(val)"
+        println(i"\(index) = \(val)")
     }
 
     for i in ls while i < 3 do {
-        println "always less than 3"
+        println(i"\(i) less than 3")
     }
 
     for i in ls until i >= 3 do {
-        println "always less than 3"
+        println(i"\(i) less than 3")
     }
 
-    total = for i in ls return acc: Int = 0 do {
-        println "sum"
-        acc = acc + i <> not a var, just a constant passed to the next iteration (returns the value of acc after the last iteration)
+    total = for(acc: Int = 0) i in ls return acc do {
+        println("sum")
+        for.call(acc + i)
     }
 
     forever do {
-        println "forever!!!"
+        println("forever!!!")
     }
 
     for(i = 0) while i < 10 do {
-        println i
+        println(i)
         for.call(i + 1)
     }
 
     for i in ls do {
-        doif i == 2 then for.break()
-        println i
+        doif(i == 2) for.break()
+        println(i)
     }
 
     for::my_loop i in ls do {
-        doif i == 2 then my_loop.break()
-        println i
+        doif(i == 2) my_loop.break()
+        println(i)
     }
 
     for::outer i in ls do {
-        println i
+        println(i)
         for j in ls do {
-            println ": " ++ i
-            domatch j <> do match, a not exhaustive match
-            with 2 => for.break()
-            with 3 => outer.break()
+            println(": " ++ i)
+            domatch j with <> domatch, a not exhaustive match
+            | 2 => for.break()
+            | 3 => outer.break()
         }
     }
 
     ::: some things together...
-    fib_sum number =
-        for(a: Int = 0, b: Int = 1, times = 0)
-        until times >= number <> unlike with while, the condition is not evaluated before starting the loop
-        return total = 0 do {
-            println "for with arguments must be with parentheses, it is how the parser know you will declare arguments"
-            println "(which must have a default value, as well as the return value)"
+    fib_sum(number) =
+        for(a: Int = 0, b: Int = 1, times = 0, total = 0)
+        until times >= number <> unlike with while, the condition of until is not evaluated before starting the loop
+        return total do {
+            println("for arguments must be within parentheses, it is how the parser know you will declare arguments")
+            println("(which must have a default value, as well as the return value)")
             n = a + b
-            total += n
-            for.call(b, n, times + 1)
+            for.call(b, n, times + 1, total + n)
         }
 
     ::: for loops are understood as a function, so they can be called recursively, and the arguments are passed to the next iteration
     ::: the same with lambdas:
-    fib_sum_with_lambdas number =
-        fib (a: Int, b: Int, acc: Int = 0, times: Int) =
+    fib_sum_with_lambdas(number) =
+        fib(a: Int, b: Int, acc: Int = 0, times: Int) =
             if(times >= number) acc else (
                 n = a + b
                 fib(b, n, acc + n, times + 1)
@@ -730,151 +724,105 @@ main() = (
 
     <> with arguments and iterator
     for(previous: Int = 0, preprevious: Int = 0) i in ls do {
-        println i"\(i) ::: pre: \(previous), prepre: \(preprevious), total: \(previous + preprevious)"
-        <> ERROR: previous = preprevious <> reasignation of the constant of the argument, NOT valid
+        println(i"\(i) -> pre: \(previous), prepre: \(preprevious), total: \(previous + preprevious)")
+        <> ERROR: previous = preprevious <> reasignation of a constant, NOT valid
         for.call(preprevious, i)
     }
 
     <> if there are arguments, each iteration is called with the same as before, unless you pass the new one
     for(i = 1, c: Bool = false) while i < 20 do {
-        println i
-        doif(i == 4 && not c) for.call(c = true)
+        println(i)
+        doif(i == 4 && not c) for.call(c = true) <> i remains the same
     }
 
+    <><><> more on functions
 
-    <><> match expression, whose power will be understood later
+    <> functions can be overloaded, and be misfix (by parts)
 
-    <> a match has a value and branches, each one with `with` before
-    do match 2
-    with 1 => false
-    with 2 => true
-    with 3 => false
-    with else => false </ the else branch is optional, but if it is not present,
-        the match must be exhaustive (all possible cases must be covered,
-        except if domatch is used, which is a not exhaustive match)
-    />
+    <><> overloading (depending on types and number of arguments, like in Java)
 
-    <> another option is to use curly braces, which is better for many-lines branches
-    <> we do not need to write `with`, but it is allowed, and it is recommended to use it for clarity sometimes
-    <> if, in... do not work if with is not written
-    do match 2 {
-        1 => false <> the expression, finished with EOL, is the body of the branch
-        2 => true
-        3 => false
-    } <> (not exhaustive, but there is no problem since it takes a comptime value)
+    <> syntactic sugar: if you write `:,` it means your type is one one of the next identifier, helpful in functions
 
-    <> to test many conditions, a trick can be used:
-    do match true
-    with 1 == 2 => false
-    with 3 > 5 => false
-    with else => true
+    ::: when overloading, a tag must be written, to differentiate the versions (if no tag is written, the function can NOT be overloaded)
+    add(x:, y: Int) 'i_i' : (Int, Int) -> Int = x + y <> (both x and y are Int)
 
-    <> to test a boolean expression, we can use `if` after `with`, and it takes as the argument to test the body until the arrow
-    do match 2
-    with 1 => false
-    with if 2 > 1 => true
-    with else => false
+    ::: another with different type
+    add(a: Int, y: Float64) 'i_f' : (Int, Float64) -> Float64 = x + y
 
-    <> we can also use `in` to test if the value is in a collection, like an array or a tuple
-    do match 2
-    with in [1, 2, 3] => true
-    with 4 => false
-    with if false => false
-    with else => false
+    ::: different number of arguments
+    add(x:, y:, z: Int) 'i_i_i' : (Int, Int, Int) -> Int = x + y + z
 
-    <> enumarations of values are accepted too, however, the use of `in` is better, because these enums only accept comptime values
-    do match 2
-    with 1 | 2 | 3 => true
-    with in [4, 5, 6] => false <> this is the correct way for any case
-    with 7 => false
+    do add(1, 2)
+    do add(1.0, 2.0)
+    do (1, 2, 3)
 
-    <> you can capture the value of the match in a variable, which can be used in the body of the branch
-    do match::my_match 2
-    with 1 => false
-    with 2 => (
-        do println i"the value of the match is \(my_match)" <> we will later understand its advantages
-        true
-    )
+    ::: an empty tag means the function can be overloaded, and that refering the function means by default this one
+    func_() '' = println("I can have more versions")
 
-    <> we can also catch the value as a constant
-    do match 2
-    with 1 => false
-    with n => i"the number is \(n)"
+    ::: the rest must have a tag (usually refering the type or the function)
+    func_(x: Int) 'prints_x' = println(i"\(x)")
 
-    <> the branches can have a condition besides the pattern
-    do match::value 2 <> here the capture makes sense
-    with 1 => false
-    with 2 where(value > 1) => true
-    with else => false
+    testing_function(f: Thing -> Thing, arg: Thing) =
+        if(args.Type is_from f.Arg) f(...arg) <> ...Int is Int, we use it to comply with tuples and with single calls
+        else
+            do println("ERROR")
+            none
 
-    <> for matching against the argument of the function just defined before, we can omit the object to match
-    demo x = match <> takes `x` as the object to match, since it is the argument of the function defined before
-    with 1 => "one"
-    with 2 => "two"
-    with else => "other"
+    do testing_function(add.'i_i', [1, 2]) <> we can NOT use just add, since there are many
+    do testing_function(func_, none) <> we CAN do this because its tag is empty (useful for letting others overload your function protecting it)
+    do testing_function(func_.'prints_x', -756) <> now needs the tag
 
-    <> with lambdas, there is an even better syntactic sugar
-    match_lambda =
-        fun match x: Int <> x is the argument of the function, match(x: Int) is allowed and even preferable
-        with 1 => "one"
-        with 2 => "two"
-        with else => x |> fun match(y: Int) with 3 => "three"; with else => "other"
+    <><> mixfix functions
 
-    <> some functions have defined .__inverse__ methods, also in operators, and they match everything unless the method returns none
-    <> we will deepen later, for now, it is just interesting to know you can do this:
-    do match 5
-    with 1 => false
-    with 3 + n => i"the value of n is \(n)"
+    ::: a mixfix function has its identifier by parts, which can be called connectors
+    ::: a tag should be written, it is how you can refer the function
+    ::: (if no tag is given, the automatic one would be 'mult__by__', but if it already exists,
+    ::: YOU must write the tag, since the automatic one already exists)
 
-    <> even with arrays, with their ++ concatenation operator
-    do match [1, 2, 3, 4]
-    with 0 => false
-    with [1, 2] ++ arr => "I have [3, 4] in arr"
-    with else => false
+    mult(x: Int)by(y: Int) 'mult_by' = x * y
 
-    <> complex patterns like x + y are not allowed, since it involves solving equations
-
-    <> destructuration of arrays: even with fields
-    destructuring_an_array(arr: []Int) = match
-        with [1, 2, 3] => "the array is [1, 2, 3]"
-        with [0, a, 4] => i"the second element is: \(a)"
-        with [1, x, y, > 5, m < 6] => i"\(m) is less than 6 and the fourth element is greater than 5"
-        with [9, 4] ++ _ => "we do not care about the rest of the array"
-        with [1, .field, .field2 == 3, .field3::f] => "the second element has the name .field,"
-            ++ " the third .field2 and is equal to 3, and the fourth has the name .field3 and its value \(f) is stored in f"
-        with [:7] => "has 7 elements"
-        with _.[2, 3] => "its first two elements are 2 and 3"
-        with [1, 2, 3,...].[.[:12] == 6, .[:4] > 5, .[:34]::elem] => i"starts with 1, 2 and 3; its 12th element is 6,"
-            ++ " its 4th is greater than 5, and its 34th is \(elem)"
-        with _.[.field, .field2::f, .field3 > 1 => i"has .field, .field2 = \(f) and .field3 > 1"]
-        with _.[-65, 6] => "first and second elements are -65 and 6"
-        with [1, [2, n], 5, ...].[.field.[x, y, z]] => i"starts with 1, then a nested array = [2, \(n)], and then a five;"
-            ++ " the field .field is an array with three elements, \(x), \(y) and \(z), and this will never happen since its []Int, not with nested arrays"
-        with [: >8] => "has more than 8 elements"
-        with [: l < 66] => i"its length \(l) is less than 66"
-        with [: 4 + m] => "yes, you can do this!"
-        with [: 4 + m where(m > 0)] => "yes, you can do this too and add a condition!"
-        with [:] => "has any number of elements, not 0"
-        with else => "the array is not matched"
-
-    <> you can take the pattern matching to wherever you want, nesting as much as you want, it is very expressive
-    <> for common cases, it is good to use `with if` and a function with arguments (one of them, probably, the argument of the match),
-    <> being this function a general pattern matcher, just something which returns none if it fails or an object to match later otherwise
-
-    longer_than__with_first_element_equal_to(obj: []Int, length: Int, firstElem: Int) :-> Bool =
-        match obj
-        with [: >length].[==firstElem] => true
-        with else => false
-
-
-    do match::val [1, 2, 3]
-    with if longer_than__with_first_element_equal_to(val, 5, 1) => "no"
-    with if longer_than__with_first_element_equal_to(val, 3, 2) => "no"
-    with if longer_than__with_first_element_equal_to(val, 3, 1) => "yes!"
-    with else => "_"
+    do [[1, 2], [3, 4]].map(elem => mult.'mult_by'(...elem)) <> the tag belongs to the first identifier
 
     </
-        After some other explainations, we will come back to the match, with pattern matching
-        for everything in the language, although some examples will be shown before.
+        The beginning must be an identifier and must end with arguments. These are NOT valid:
+        (x)and_sum(y) = x + y <> ERROR: function names must start with an identifier
+
+        execute(f: f32, value: f32)three_times = f(f(f(value))) <> ERROR: functions must end with a call
     />
+
+    ::: mixfix functions can be overloaded too
+    ::: the empty tag is like the automatic one
+    div(x: Int)plus(y: Int)by(z: Int) '' = (x + y) / if(z == 0) 1 else z
+
+    ::: each combination can NOT have the same type as other (div(Int) is not valid again)
+    div(x: Float32)by(y: Int) 'f_i' = x / if(y == 0) 1 else y
+
+    ::: however, if a type changes, the rest is new too
+    div(x: Float32)plus(y: Int)by(z: Int) 'f_i_i' = (x + y) / if(z == 0) 1 else z
+
+    ::: the not-mixfix one can exist too
+    div(x:, y: Int) 'simple' : (Int, Int) -> Float = x.div_by(y) <> a safe method, returns NaN if there is a problem
+
+    do (
+        testing_function(div, [1, 2, 3]), <> returns 1.0, div is div.'' if there is a version with empty tag
+        testing_function(div.'simple', [1, 2]) <> returns 0.5
+    )
+
+    do (
+        div(1)plus(2)by(3),
+        div(1.0)by(2),
+        div(1.0)plus(2)by(3),
+        div(1, 2)
+        div.'simple'(1, 2)
+    )
+
+
+    <> In any case, both overloading and mixfix, the mangled name is the first identifier plus __ and the tag (nothing if empty)
+    <> add__i_i, add__i_f, add__i_i_i, func___, func___prints_x, mult__mult_by, div__, div__f_i, div__f_i_i, div__simple
+    <> you can use @[mangle_as] to create your mangled name
+
+    @[mangle_as("my_mult")]
+    mult(x:, y: Int) 'mult2' = x * y
+
+    do testing_function(mult.'mult2', [1, 2]) <> you still use the tag, the mangling is in the binary file, the compilation symbol
 )

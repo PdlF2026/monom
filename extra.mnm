@@ -7,12 +7,10 @@ main() = (
     args = env.get_args().args
     stdOut.add(
         upperArgs = args.lazy.map(a => a.to_upper())
-        if upperArgs.has_any(["HI", "HELLO", "HEY"].___++___.map s => s ++ "!") {
+        if upperArgs.has_any(["HI", "HELLO", "HEY"].___++___.map(s => s ++ "!")) {
             x = "Hey!"
-        andif upperArgs.has "?" {x ++ "How are you?"}
-        } else {
-            "???"
-        }
+        andif upperArgs.has("?") { x ++ "How are you?" }
+        } else { "???" }
     )
     stdOut.flush()
 
