@@ -37,7 +37,7 @@ main() = (
             -0.125 for floats to show the number has decimal digits and that it can be negative. The default value is not 0
             to be able to tell the difference. The maximum, minimum and these other things are atributes from the type, like
             Nat64.maxValue or Flot32.minValueOverZero for typical numeric types. You also have, for instance, in Float32,
-            Float32.float32NaN, and the methods .is_NaN() and .is_not_NaN(), to manage NaN (not a number).
+            Float32.floatNaN, and the methods .is_NaN() and .is_not_NaN(), to manage NaN (not a number).
         />
     d3 = 3 <> then, we can assign the value for the defined identifier
 
@@ -103,6 +103,7 @@ main() = (
         <> the same with empty lines
 
         do f1() <> a do statement, EOL skipped
+
         </
             here, do is not needed (println returns nothing), but in order to continue the body of the function, so that it does not end here,
             we will use do (a do statement can never be the last expression of a function)
@@ -110,14 +111,15 @@ main() = (
         do println("Hello!")
 
         def a: Int <> a declaration (or definition, in this case), EOL is skipped again
-        a = readln().get_length() <> again, another declaration
+        a = readln().length() <> again, another declaration
+        b = 1 <> the same
         a + <> the + awaits to be complete, EOL is skipped
         b
         + x <> this + can only be complete if it follows the previous expression, so, for unary - use (-x) when written at the beginning of a line
 
     ::: f4 could also be written like this...
     f5(x) = use std.io.stdOut .readln, .println;;do f1();do println("Hello!")
-    def a: Int; a = readln().get_length();   a + ; b +x
+    def a: Int; a = readln().get_length();b =1;   a + ; b +x
 
     <> ...but do not do it please! If the body of the function gets long, it is better to wrap it in parentheses, like with this main function
 
@@ -130,6 +132,7 @@ main() = (
 
         def a: Int
         a = readln().get_length()
+        b = 1
         a + b + c <> last expression returned
 
 
@@ -175,7 +178,7 @@ main() = (
         match x with
         | Int<12 => "less than 12"
         | if x >= 12 && <= 66 => <> * see the comment after this function
-            match x { <> if curlies are found (no matter the space or EOLs between), the parentheses delimit the body of the match expression
+            match x { <> if curlies are found, they delimit the body of the match expression
             | in 12, 13, 14, 15, ...[6, 7, 8, 9].map(n => n + 10) => "number between 12 and 19, '| in' calls the .has method of the object received,"
                 ++ " otherwise we would have matched against a tuple or an array"
             | if [20..:(10)101].map(d => ...([0..==9].map(n => d + n))).has(x) => "20-100"
@@ -236,14 +239,14 @@ main() = (
                     | if is_even(n3) => even(times2 + 1, n3)
                     | if is_odd(n3) => lambda(times2 + 1, n3)
             )(times + 1, n2) <> we need to use parentheses to wrap the lambda and call it right after its definition
-        if(is_even num) even_func(0, num) else even_func(-1, 2 * num) <> last expression returned, the if expression in this case
+        if(is_even(num)) even_func(0, num) else even_func(-1, 2 * num) <> last expression returned, the if expression in this case
 
     <> Now, we will see how to write types in functions (it is the same for hard lambdas, just consider fun the name of the function)
 
-    ::: you can do it like this, taking on account thin short arrows are associative by the right
+    ::: you can do it with a def, taking on account thin short arrows are associative by the right
     def g1: Int -> Int -> Int <> is the same as def g1: Int -> (Int -> Int)
     g1(x) = fun(y) = x + y
-    println(g1 int1 int2)
+    println(g1(int1)(int2))
 
     ::: this is the type of the function
     g2(x) : Int -> (Int, Int) = (x, x ** 2)
@@ -282,8 +285,8 @@ main() = (
     ::: with type
     a2: [Int, Int, Bool] = [1, 2, true]
 
-    elem1 = a1[0] <> the first element is at index 0
-    elem2 =
+    someElem1 = a1[0] <> the first element is at index 0
+    someElem2 =
         elem = a1[1]
         match elem with
         | Int => elem
@@ -308,14 +311,14 @@ main() = (
     ::: a tuple is an "open" array
     t1 = (1, 2, 3)
 
-    ::: indeed, to spread/open an array, use the spread operator
+    ::: to spread/open an array, use the spread operator
     t2: (Int, Int, Int) = ...a1
 
     ::: in the type, the spread works the same
     t3: ...[:2]Int = ...[1, 2]
 
     ::: and access is just the same as for normal arrays, which can be called bricks (because [...] looks like a brick)
-    println t3[1]
+    println(t3[1])
 
     ::: nested tuples get plain
     a7: ...[:5]Int = (1, 2, (3, 4), 5) <> evals to (1, 2, 3, 4, 5)
@@ -333,16 +336,18 @@ main() = (
     ::: or no type, of course (thanks to inference)
     a10 = [0, ...a9, 3] <> this will eval to [0, 1, 2, 3] : [:4]Int
 
-    ::: by .[ ] we can return a new version of an array
+    ::: by .[ ] we can return a new version of an array, with new values
     a11 = a9.[3, 4] <> a11 is [3, 4]
 
     a12 = a9.[9] <> a12 is [9, 2]
 
-    ::: in the array (both for values and for the type), we can refer the index by .[:indx]
+    a12_2 = a10.[_, _, 9] <> a12_2 is [0, 1, 9, 3]
+
+    ::: in the array, we can refer the index by .[:indx]
     a13 = a9.[.[:1] = 87] <> a13 is [1, 87]
 
-    ::: as said, in types it works too
-    a14: [.[:1] : Int] = [true, -4, false] <> the type is therefore [Bool, Int, Bool], and a14[1] is Int
+    ::: in types it works too
+    a14: [.[:1]: Int] = [true, -4, false] <> the type is therefore [Bool, Int, Bool], and a14[1] is Int
 
     <> ERROR: a15 = a13.[1, 2, 3] Out of range!
 
@@ -350,9 +355,12 @@ main() = (
 
     a15: [:4]Int = a11 ++ a12
     a16 = [3, 4, 9, 2]
-    do a15 == a16 <> evals to true
+    a16_2 =
+        aux = (a11 ++ a12).[_, 65] <> you can use _ to skip positions
+        aux.[.[:1] = 4]
+    do a15 == a16 && == a16_2 <> evals to true
 
-    ::: use [:] to express an array with some size (unlike []), inferred
+    ::: use [:] to express an array with some size (unlike [], which means any), inferred
     a17: [:]Int = [1, 2, 3, 4, 5] <> a17: [:5]Int
 
 
@@ -362,7 +370,7 @@ main() = (
     s1 = [0, .field = 1] <> not all fields must have name, sometimes we just need an array with an special position named
 
     ::: the same in the type
-    s2: [Int, .field: Int] = s1 <> the fields must be named the same
+    s2: [Int, .field: Int] = s1 <> the fields must be named the same, [:2]Int == [Int, .field1: Int] != [Int, .field2: Int] == [:2]Int
 
     <> and access works both with index and with name:
     do s1[0]
@@ -372,57 +380,56 @@ main() = (
     do s2.field
     do s2[1]
 
-    ::: names can be nested
     s3 = [
-        .a: Int = 1, <> a name with type
-        ::: documentation for the field
-        .b = 2,
-        3, <> no name
-        .c = [1, 2, 3], <> can be heterogeneus, but access will be a bit slower due to boxing in some cases (or the array might be bigger because of padding)
-        .d: [:2]Int = 4, <> the type is not neccesary
-        .d = 5, <> .d has now two elements (if extended like this, a field can only be next to itself, so [.a, .b, .a] is not allowed)
-        .e = 6 : Int, <> we can write the type of the expression (here, number 6), to refer to that one element of a field, here .e
-        .e: [...[:2]Int, .a: Int] = 7, <> yes, the spread works in types too, and it is the type of `e`, not of e[1]
-        .e.a = 8,
-        9 <> a number
+        1,
+        ::: docs for a field
+        .a = 2,
+        .b: Int = 3,
+        .c = [4, 4, [4, 4]],
+        5
     ]
 
-    <> it works this way:
-    do s3.e.a <> 8
+    <> the creation of new versions is quite similar
 
-    ::: the syntax for new versions is the same
-    s4: [:]Int = <> with [:] we let the length be inferred
-        s3.[
-        2, <> positional
-        3, <> positional as well, does not matter it has a field name
-        .e.a = -512, <> by field, positional redefinition stops
-        .[:2] = 6, <> by index
-        .c = 9, <> by field again
-        .d.[:1] = 65 <> by the index in a field
+    s4 = s3.[
+        0, _, 6854, <> positional, overriding the field too
+        .[:4] = 2 <> once an index or a field is used, positions are no longer available
+    ].[ <> to restart positions you can use .[] again
+        3 - 2,
+        .a = 10, <> even if this field goes next, once a field is used, you can not use positions
+        <> 2 <> ERROR: The creation of a new array has already lost positions to do so
+        .c = [4, 4 + 1, [4, 4]],
+        .b = 2 <> the order of fields does not matter
+        <> .a = 4 <> ERROR: Field already referred
+    ].[ <> you can chain another use of .[] to do refer to it again
+        .a = 1,
+        .c.[:1] = 4, <> this way you can change the element of a field
+        .[:3].[:0] = 4, <> this way too!
+        .c.[:2] = 4 <> and also this way!
     ]
 
-    ::: in types, you can add a field to an index, here after .e.a, in index 9, we place the .f field
-    s5: [.[:9]->.f: Int] = s3 <> gains the field name, since it is a cast to a type whose index 9 has field f
-
-    ::: or...
-    s5_2 = s3.[.[:9]->.f]
+    s5 = s3.[.[:4] -> .d] <> new fields, here for the 4th element
 
     ::: a type alias
     use CisAnArrayRestInts =
-        [:10]Int.[ <> the same way we get a new version from an array with values, we can do it with types
-            .[:s3.c.__offset__()] = [:3]Int <> we change the value of the element at s3.c.__offset__(), which here was of type Type
+        [:5]Int.[ <> the same way we get a new version from an array with values, we can do it with types
+            .[:s3.c.__offset__()] = [:2]Int ++ [[:2]Int] <> we change the value of the element at s3.c.__offset__(), which here was of type Type
         ]
 
-    ::: you can also erase the fields, here, coerced to an array without fields,
+    ::: you can also erase the fields, here, coercing to an array without fields, whose type alias was
     ::: created in a fancy way to express "array of Ints except the element in the position of .c"
     s6: CFieldPositionisAnArrayRestInts = s3
 
+    s6_2 = [1, 2, .fieldToErase = 3, .another = 4]
+
+    ::: you can erase fields easily by name, using .[ <-.name], instead of with tricks like the one above
+    s6_3 = s6_2.[ <-.fieldToErase, <-.another] <> only erasing fields is allowed in the .[] sequence
 
     ::: if you want an array where every element has a field, use
     @[structArray]
     s7 = [.a = 1, .b = 2, .c = 3]
 
-    ::: if you want the element to be just accessed by the name of the field, use
+    ::: if you want the element to be only accessed by the name of the field, use
     @[struct]
     s8 = s7 <> the cast works, since every element in s7 has a name
 
@@ -445,7 +452,7 @@ main() = (
 
     do if ( <> together is the correct format to differentiate this form from others, although if SPACE (...) is valid too
             aux(n: Int) = n.is_odd()
-            aux([1, 2, 3].fold((acc, n) => acc + n))
+            aux([1, 2, 3].fold(0, (acc, n) => acc + n))
         ) <> there can be a block with many expressions, although it is not recommended
         true else 4 <> the else body ends when its expression finishes...
         + 5 <> ...with EOL in this case, after completing the + operation
@@ -453,7 +460,7 @@ main() = (
     <> the previous one would look better like this:
     do if(
         aux(n: Int) = n.is_odd()
-        aux([1, 2, 3].fold((acc, n) => acc + n))
+        aux([1, 2, 3].fold(0, (acc, n) => acc + n))
     ) true else 4 + 5
 
     <> if-curly: good for large, multiline bodies
@@ -475,7 +482,7 @@ main() = (
     <> the if-curly syntax takes as the condition whatever it is before the curly, like a block
     do if
         aux(n: Int) = n.is_odd()
-        aux([1, 2, 3].fold((acc, n) => acc + n)) {
+        aux([1, 2, 3].fold(0, (acc, n) => acc + n)) {
             true
         } else 4 + 5
 
@@ -582,35 +589,6 @@ main() = (
     doif(true) println("hey") doelse println("doelse exists as well, although it makes no sense,"
         ++ " since with a single do and then a standard if-conditional, it is the same as a doif with an else")
 
-    <><> value-ret conditionals
-
-    do 5??{false} <> if the value is none, returns false
-
-    <> multiconditional...
-    do 5??{
-        false <> the first case is triggered if the value is none
-        orif 4 => false
-        orif 6 => false <> if there is no else, and nothing matches, returns the original value (i.e. 5 in this case)
-    }
-
-    do 5??{
-        false
-        orif 4 => false
-        orif 5 => true
-        orif 6 => false
-        else => "else case" <> with an else, everything will match (or the else case), working as some sort of switch
-    }
-
-    <> we can capture the value, useful if it is the result of a complex expression we do not want to repeat
-    complex_operation(n) = n + 21
-
-    do (3 * complex_operation(-66))??::nameOfTheValue{
-        false
-        orif 45 => false
-        orif 5 | -155 => true
-        orif -45 => false
-        else => nameOfTheValue + 1
-    }
 
     <><> when conditional: like if, but in a different order
 
@@ -644,9 +622,8 @@ main() = (
     abs_div2(x) =
         -1 / x  when(x < 0)
         0       when(x == 0)
-        1 / x   when(x > 0) none
+        1 / x   when(x > 0) () <> when(x < 0) none or when(x > 0)() are valid too
 
-    <> remember, else allows curly braces after it
 
     <><> for loop
 
@@ -691,13 +668,13 @@ main() = (
         println(i)
     }
 
-    for::outer i in ls do {
+    for::outer_for i in ls do {
         println(i)
         for j in ls do {
             println(": " ++ i)
             domatch j with <> domatch, a not exhaustive match
             | 2 => for.break()
-            | 3 => outer.break()
+            | 3 => outer_for.break()
         }
     }
 
@@ -706,7 +683,7 @@ main() = (
         for(a: Int = 0, b: Int = 1, times = 0, total = 0)
         until times >= number <> unlike with while, the condition of until is not evaluated before starting the loop
         return total do {
-            println("for arguments must be within parentheses, it is how the parser know you will declare arguments")
+            println("for arguments must be within parentheses, it is how the parser knows you will declare arguments")
             println("(which must have a default value, as well as the return value)")
             n = a + b
             for.call(b, n, times + 1, total + n)
@@ -735,94 +712,156 @@ main() = (
         doif(i == 4 && not c) for.call(c = true) <> i remains the same
     }
 
+
     <><><> more on functions
 
-    <> functions can be overloaded, and be misfix (by parts)
+    use Float = Float64
 
-    <><> overloading (depending on types and number of arguments, like in Java)
+    <> functions can be overloaded, and be mixfix (by parts)
 
-    <> syntactic sugar: if you write `:,` it means your type is one one of the next identifier, helpful in functions
+    ::: overloading requires to provide tags
+    ::: the type of the arguemnts should be different
+    mult(x: Int, y: Int) 'i_i' : (Int, Int) -> Int = x * y
 
-    ::: when overloading, a tag must be written, to differentiate the versions (if no tag is written, the function can NOT be overloaded)
-    add(x:, y: Int) 'i_i' : (Int, Int) -> Int = x + y <> (both x and y are Int)
+    mult(x: Float, y: Float) 'f_f' = x * y
 
-    ::: another with different type
-    add(a: Int, y: Float64) 'i_f' : (Int, Float64) -> Float64 = x + y
+    mult(n: Int) 'i' = fun(nn) = n * nn
 
-    ::: different number of arguments
-    add(x:, y:, z: Int) 'i_i_i' : (Int, Int, Int) -> Int = x + y + z
+    do mult(1, 2)
+    do mult(1.0, 2.0)
+    do mult(1)(2)
 
-    do add(1, 2)
-    do add(1.0, 2.0)
-    do (1, 2, 3)
+    do [1, 2, 3].map(mult(3))
+    do [1, 2, 3].fold(1, mult.'i_i') <> here we need the tag to give information about which function it is
 
-    ::: an empty tag means the function can be overloaded, and that refering the function means by default this one
-    func_() '' = println("I can have more versions")
+    ::: if you use the empty tag, it means this version is the standard one
+    divide(a: Int, b: Int) '' = div(a, b)_or(0)
 
-    ::: the rest must have a tag (usually refering the type or the function)
-    func_(x: Int) 'prints_x' = println(i"\(x)")
+    ::: only one version can have the empty tag
+    divide(a: Float, b: Float) 'f_f' = div(a, b)_or(0)
 
-    testing_function(f: Thing -> Thing, arg: Thing) =
-        if(args.Type is_from f.Arg) f(...arg) <> ...Int is Int, we use it to comply with tuples and with single calls
-        else
-            do println("ERROR")
-            none
+    do divide(1, 2)
+    do divide(1.0, 2.0)
 
-    do testing_function(add.'i_i', [1, 2]) <> we can NOT use just add, since there are many
-    do testing_function(func_, none) <> we CAN do this because its tag is empty (useful for letting others overload your function protecting it)
-    do testing_function(func_.'prints_x', -756) <> now needs the tag
+    do [1, 2, 3].map(fun = divide($0, 2)) <> by default, the function will be the one of the empty tag
+    do [1, 2, 3]
+        .map(cast(Float))
+        .fold(10, divide.'f_f') <> again, we need information
 
-    <><> mixfix functions
+    <> mixfix functions comply with the format of common ones, snake_case, although the name is splitted in separate parts
 
-    ::: a mixfix function has its identifier by parts, which can be called connectors
-    ::: a tag should be written, it is how you can refer the function
-    ::: (if no tag is given, the automatic one would be 'mult__by__', but if it already exists,
-    ::: YOU must write the tag, since the automatic one already exists)
+    ::: they should be of the form part1()part2()...part_n(), i.e. starting with an identifier and not ending with one
+    bool_or(a: Bool, b: Bool)_and(c: Bool) = (a || b) && c
 
-    mult(x: Int)by(y: Int) 'mult_by' = x * y
+    ::: if some parts have a coincidence, it is not overloading
+    ::: (this is not an overloading)
+    bool_or(a: Bool, b: Bool) = a || b
 
-    do [[1, 2], [3, 4]].map(elem => mult.'mult_by'(...elem)) <> the tag belongs to the first identifier
+    <> The real names are:
+    <> bool_or_ (a normal function) and
+    <> bool_or__and_ (the name together with underscore where arguements would be)
+
+    <> parts of functions can not have the same name as keywords
+    <> if that is the case, a good solution is to write a leading underscore, like we did with _and
+
+    do bool_or_(true, false)_and(true)
+    do bool_or__and_(true, false, true)
+    do bool_or(true, false)
+
+    <> if the real name is the same as other function, even if you have not written it (generated automaticly), it is a comptime error
+
+    ::: mixfix functions can be overloaded too, and the use of tags is the same
+    add(x: Int)_and(y: Int) '' =  x + y
+    add(x: Int)_and(y: Float) 'i_f' = x + y
+
+    do add(1)_and(2)
+    do add__and_(1, 2)
+    do add__and_ <> we get the version with the empty tag
+    do add__and_.'i_f'
+
+    ::: aliases can be created
+    use add_i_f = add__and_.'i_f'
+
+    ::: even inline!
+    add(x: Float)_and(y: Float) 'f_f' (use f_f) = x + y
+
+    do add__and_.'f_f' <> exists
+    do f_f <> exists!
+    do f_f(1.0, 2.0)
+
+    ::: of course, mixfix functions can be longer (in which case it is a must to write an alias to avoid the Obj-C problem when referring them)
+    this(x: Int)is_cool(b: Bool)and_greater_than(y: Int) (use cool) = x > y && b
+
+    do this(5)is_cool(true)and_greater_than(3)
 
     </
-        The beginning must be an identifier and must end with arguments. These are NOT valid:
-        (x)and_sum(y) = x + y <> ERROR: function names must start with an identifier
-
-        execute(f: f32, value: f32)three_times = f(f(f(value))) <> ERROR: functions must end with a call
+        You can not write EOL between parts of a mixfix function, neither in its definition.
+        As in common functions, () is equivalent to none, and it is a valid argument, even if
+        it is a bit strange in mixfix functions (usually, it appears when there are versions and one of them keeps parts
+        without arguments, like for a default, like div(1, 2)_or(Float32.floatNaN) and div(1, 2)_or(), which do the same).
     />
 
-    ::: mixfix functions can be overloaded too
-    ::: the empty tag is like the automatic one
-    div(x: Int)plus(y: Int)by(z: Int) '' = (x + y) / if(z == 0) 1 else z
+    ::: an interesting use of overloading is for functions
+    ::: and, as said before, pattern matching in the arguments allows writing there a number, for example
+    ::: () or (none) are just a similar case
+    factrl(0) 'zero' = 1
+    factrl(0, acc) 'zero_acc' = acc
+    factrl(n, acc) 'n_acc' = factrl(n - 1, n * acc)
+    factrl(n) '' = factrl(n, 1)
 
-    ::: each combination can NOT have the same type as other (div(Int) is not valid again)
-    div(x: Float32)by(y: Int) 'f_i' = x / if(y == 0) 1 else y
+    ::: sometimes, it is not pretty to write the tags and these kind of things
+    factrl2(arg) = match arg with
+        | 0 => 1
+        | (0, Int::acc) => acc
+        | (Int::n, Int::acc) => factrl2(n - 1, n * acc)
+        | Int::n => factrl2(n, 1)
 
-    ::: however, if a type changes, the rest is new too
-    div(x: Float32)plus(y: Int)by(z: Int) 'f_i_i' = (x + y) / if(z == 0) 1 else z
+    <> mutual recursion
 
-    ::: the not-mixfix one can exist too
-    div(x:, y: Int) 'simple' : (Int, Int) -> Float = x.div_by(y) <> a safe method, returns NaN if there is a problem
+    <> Monom is parsed linearly, to enforce a good design of the code.
+    <> Indeed, this prevents most cyclic references
 
-    do (
-        testing_function(div, [1, 2, 3]), <> returns 1.0, div is div.'' if there is a version with empty tag
-        testing_function(div.'simple', [1, 2]) <> returns 0.5
-    )
+    ::: to achieve mutual recursion, a definition might be helpful
+    def mutual1_2: Int -> Int
 
-    do (
-        div(1)plus(2)by(3),
-        div(1.0)by(2),
-        div(1.0)plus(2)by(3),
-        div(1, 2)
-        div.'simple'(1, 2)
-    )
+    mutual1_1(x) =
+        if(x <= 0) 0 else
+            do println(i"1 x = \(x)")
+            mutual1_2(x - 1)
 
+    mutual1_2(x) =
+        if(x <= 0) 0 else
+            do println(i"2 x = \(x)")
+            mutual1_1(x - 1)
 
-    <> In any case, both overloading and mixfix, the mangled name is the first identifier plus __ and the tag (nothing if empty)
-    <> add__i_i, add__i_f, add__i_i_i, func___, func___prints_x, mult__mult_by, div__, div__f_i, div__f_i_i, div__simple
-    <> you can use @[mangle_as] to create your mangled name
+    ::: a predefinition is valid too, and shorter, although writing the type is recommended
+    @[predef]
+    def mutual2_2: _
 
-    @[mangle_as("my_mult")]
-    mult(x:, y: Int) 'mult2' = x * y
+    mutual2_1(x) =
+        if(x <= 0) 0 else
+            do println(i"1 x = \(x)")
+            mutual1_2(x - 1)
 
-    do testing_function(mult.'mult2', [1, 2]) <> you still use the tag, the mangling is in the binary file, the compilation symbol
+    mutual2_2(x) =
+        if(x <= 0) 0 else
+            do println(i"2 x = \(x)")
+            mutual1_1(x - 1)
+
+    ::: a new overloaded function
+    add(a: Int, b: Int) '' = a + b
+
+    ::: using final stops the overloading of it
+    final add(a: Float, b: Float) 'add2' = a + b
+
+    ::: this way, you can limit what and how many versions can exist
+    subs(a: Int, b: Int) '' (final 'f1', 'f2', 'f3') = a - b
+
+    ::: with a tag written it is valid too, but in the final tags you can not write the empty one
+    ::: you can write the type of the tag, and there can be more than one postfix
+    subs2(a: Int, b: Int) 'tag'
+        (final 'f_f': (Float, Float) -> Float, 'f_i', ' i_f')
+        (use my_subs) = a - b
+
+    <> not finished yet!
 )
