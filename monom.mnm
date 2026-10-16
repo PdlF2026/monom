@@ -1,0 +1,1637 @@
+<> Comentario de una sola línea
+
+</
+    Comentario de varias líneas
+/>
+
+::: Documentación de una sola línea
+
+:/
+    Documentación de varias líneas
+/:
+
+<> El código se lee en orden, de izquierda a derecha y de arriba a abajo. No depende de la indentación, sino de las expresiones,
+<> como en OCaml. Sin embargo, en la gran mayoría de casos de código idiomático, no hace falta usar delimitadores
+<> como `in`, `;`, `begin` - `end`...
+<> El salto de línea sí es relevante, y su equivalente sintáctico es `;;` si se quiere evitar el salto.
+<> Que no dependa del espacio pero sí del salto de línea no debe llevar a confusión, pues el funcionamiento es
+<> muy similar al de lenguajes como Golang, Kotlin, o Swift en este sentido, usando el EOL pero no la indentación.
+<> A diferencia de ellos, Monom es más flexible con esto, como se detallará más adelante. No hay ambigüedad como sí habría
+<> con la inferencia de punto y coma en JS por ejemplo, el significado en Monom no depende de normas complejas de inserción
+<> de finales de sentencia o demás.
+
+<> Usamos esto para que no salten advertencias de que no usamos todo lo que declararemos,
+<> importante ya que vamos a declarar muchas cosas. Se trata de una anotación nativa,
+<> que llamaremos directivas o comandos del compilador. Son limitadas y no las puede crear el usuario.
+@[not_used_identifier("off")]
+
+<> MARK: Aclaraciones
+</
+En Monom existen algunas convenciones obligatorias que aportan semántica para el cpmpilador.
+Las demás son solo recomendaciones. Las 3 reglas del compilador son:
+1: Prohibidos los identificadores que empiecen y terminen con `___`, pues son reservados.
+2: Algunas cosas deben empezar por minúscula obligatoriamente.
+3: Algunas cosas deben empezar por mayúscula obligatoriamente.
+
+Esto se verá a lo largo del código de ejemplo, pero en general, los tipos y otras clasificaciones
+deben estar capitalizados, y los valores y funciones no.
+
+En cuanto a convenciones, las más generales son:
+1: PascalCase para tipos, clases...
+2: camelCase para valores no ejecutables (lambdas excluidas por tanto)
+3: snake_case para valores ejecutables
+
+El motivo para elegir snake_case y camelCase así y no viceversa es que las funciones suelen tener más preposiciones
+y palabras cortas, quizá también nombres más largos. También se integra `_` mejor con la sintaxis mixfix de Monom.
+
+Nota: cuando un identificador comienza con uno o varios `_`, su capitalización será la de la primera letra.
+Si se encuentra antes un número, cuenta como minúscula, aunque haya letras después.
+
+En cuanto a lenguaje, aclararemos unos cuantos términos:
+1: Cuando hablamos de "objeto" nos referimos a prácticamente cualquier instancia como tal,
+desde números básicos a objetos, funciones y demás. En general, son algo que tiene valor.
+No debe pensarse que ser objetos los convierte en envoltorios, es solo semántica.
+Por ejemplo, para un entero de 64 bits lo normal es usar `Int64`, aunque si quieres el tipo en crudo
+puedes optar por `___Int64___`, que no tiene utilidades, suele ser incompatible con lo que espera
+enteros de 64 bits y además solo tiene de campos los de metainformación y pocos más.
+Por ello, que algo sea objeto no implica que tenga una disposición en memoria diferente.
+2: Podríamos diferenciar entre funciones y procedimientos, englobando ambos en "aplicaciones",
+pero por comodidad y familiaridad usaremos la palabra "función", que es el caso general, y trataremos los procedimientos
+como un caso especial.
+3: En Monom es muy importante saber delimitar lo que es una expresión, y además las expresiones de nivel superior
+llamadas "bloques", que son expresiones también. En la sección de control básico se explican mejor.
+
+El siguiente texto asume conocimientos de programación previos.
+/>
+
+::: la función `main` es el punto de entrada del programa, que no tiene argumentos
+::: y no devuelve nada, y que debe estar a primer nivel del archivo
+let main(): Nothing = (
+    <> MARK: Declaraciones
+    <><><> Formas de declarar: con `let`, con `use` o con `def`
+    </
+    Cubriremos solo algunas formas elementales, no todas las que puede haber, que se entenderán mejor posteriormente.
+    Además, conviene aclarar que el formateo empleado es el recomendado, con el prefijo tras la palabra clave,
+    y aunque `local let x = 4` sea correcto, se prefiere `let local x  = 4`, a menos que sea para aplicar el prefijo
+    a varias declaraciones a la vez, algo que se explica en esta sección.
+    />
+
+    ::: los identificadores pueden empezar por underscore o por letras, y tener después underscores, números o letras
+    let _example54 = 0
+
+    ::: esto es válido también, aunque no recomendado normalmente
+    let _9 = 9
+
+    ::: el identificador `_` puede reasignarse tantas veces como se quiera, y, en general,
+    ::: no debe usarse para otra cosa que no sean nombres arbitrarios sin uso, como este
+    let _ = 4
+
+    <> MARK: `let`
+    <><> `let`: para valores
+
+    ::: declarar un valor
+    let local v1: Int32 = 1
+
+    ::: puedes poner el tipo así, aunque la forma anterior es más limpia
+    let local (v2: Int32) = 2
+
+    ::: o incluir el prefijo si lo deseas, pudiendo ser varios
+    let (local const _v2: Int32) = 2
+
+    ::: se pueden omitir tanto prefijo como tipo
+    let v3 = 3 <> se deduce `const private Int64` por defecto
+
+    <> o poner solo uno de ellos
+
+    let v_1: Int32 = -1 :::<- la documentación con la flecha así permite documentar a posteriori hasta EOL
+    let local v_2 = -2 :/<- en los comentarios de documentación multilínea,
+        esta funciona igual con la documentación posterior /:
+
+    ::: puedes compartir el `let` con varias declaraciones,
+    ::: separando por comas
+    let v4 = 4, v5 = 5, v6: Nat32 = 6
+
+    ::: con los prefijos es igual, anteponiendo el prefijo
+    ::: a la palabra `let` y separando con comas
+    local let v7 = 7, v8: Int32 = 8, v9 = 9 <> todas son locales
+
+    ::: si el prefijo va tras la palabra clave, se asocia a la declaración consecutiva, no a todas
+    let local v10 = 10, v11 = 11 <> solo v10 es local
+
+    ::: para usar un prefijo en varias declaraciones sin usar `let`,
+    ::: algo útil si no todas son valores, quizá mezclando tipos o aliases,
+    ::: puedes extenderlo hasta `end` (o fin de scope) escribiendo `:` después,
+    ::: y el prefijo se aplicará a todas las declaraciones internas, aunque sean varias
+  local:
+    let v12 = 12
+
+    let
+        v13 = 13,
+        v14 = 14
+  end
+
+    ::: o lo mismo en una sola línea (recordemos que ;; equivale al salo de línea)
+    local: let v12 = 12 ;; let v13 = 13, v14 = 14 end
+
+    ::: también puedes anidar prefijos de esta manera
+  local:
+    let _ = 1
+    ::: anidado
+    let const _ = 2
+
+    ::: más prefijos anidados
+    const:
+        <> el anidamiento es de 2 espacios por cada nivel, y por cada dos suma un nivel de tabulado normal (4 espacios),
+        <> elegido así para que resalte en el código, ya que zonas demasiado grandes así hacen que pierdas localidad
+        let _ = 3, const _ = 4 :::<- redundante, pero no incorrecto
+
+        ::: con algunas directivas funciona igual
+      @[deprecated("do not use")]:
+        let _ = 5
+        let _ = 6
+      end
+    end
+  end <> este final tan llamativo está pensado para llamar la atención
+
+    ::: también aplicar varios a la vez (pero no mezclar directiva y prefijos)
+  local const:
+    let _ = 1
+    def _: Int
+    let _ = 2
+  end
+
+    <> Las zonas de prefijo no alteran el scope, y para recordarlo empiezan a tabularse con el nivel actual.
+    <> Son solo azúcar sintáctico para escribir menos, evitando el boilerplate de por ejemplo Java.
+
+    <> MARK: alias `use`
+    <><> `use` para tipos y otras cosas
+
+    ::: para crear un alias de tipo, puedes hacerlo así
+    use Int = Int32
+
+    ::: la sintaxis es muy similar a la de `let`, y por ser
+    ::: el alias un tipo, debe seguir las reglas de capitalización
+    use Nat = Nat32
+
+    ::: se pueden declarar varios, con la misma sintaxis que con `let`
+    use Float = Float32, private Double = Float64, LongLong = Int64
+
+    ::: y con prefijo antes de `use` para extenderlo a todos, admitiendo zonas de prefijo,
+    ::: que se revelan útiles cuando debes mezclar `let` y `use` por ejemplo
+    local use _Float = Float32, _Double = Float64
+
+    <> MARK: `def`
+    <><> `def` para solo definir tipos, sin inicializar
+
+    <> la sintaxis es análoga a la de `let`
+
+    def v15: Int
+
+    def v16: Int, local v17: Float
+
+    local def v18: Nat, v19: Nat
+
+    <> Cuando hay varias declaraciones, tanto con `let` como con `def`, se aconseja usar el tabulador.
+
+    ::: Documenación general.
+    local def
+        const v20: Int,
+        v21: Double,
+        ::: Documentación de v22.
+        v22: Int
+
+    <> implementamos lo definido...
+    let
+        v15 = 15,
+        v16 = 16,
+        v17 = 17.0,
+        v18 = 18,
+        v19 = 19,
+        v20: Int = 20 <> puedes poner el tipo de nuevo, siempre que cuadre con su definición original
+
+    ::: Documentación general de implementación.
+    let v21 = 21, :/ Documentación de implementación. /: v22 = 22
+
+    <> MARK: desligar `use`
+    <><> otros escenarios para `use`
+
+    ::: tenemos un namespace largo y queremos desligar algo de su posición
+    use std.math.Matrix.det; <> termina con `;`
+
+    ::: puede hacerse con varias cosas
+    use std.io.stdIn.readln, std.io.stdIn.read;
+
+    ::: con punto si pertenece al mismo namespace que el anterior,
+    ::: desligando `.println` y `.print` para que accedamos sin cualificar
+    use std.io.stdOut .println, .print; <> ambos estaban en `.stdOut`, que no se desliga
+
+    ::: al igual que con las declaraciones normales, si la enumeración es larga se aconseja tabular
+    use
+        ::: puedes desligar todo lo de un namespace, aunque no se recomienda
+        ::: por si provoca un conflicto de nombres, mediante `.*`
+        std.selection.*,
+        ::: también puedes desligar una serie de cosas aquí
+        std.io.ExternalIO .textInput, .textOutput;
+
+    ::: puedes sub anidar, volviendo un paso atrás con punto y coma
+    use std
+        .io
+            <> punto, anidamos
+            .stdErr
+                ::: con los aliases, se dan nombres a la captura,
+                ::: necesario en este caso para evitar colisiones
+                .println :: err_println, <> coma o punto y coma, se desliga y deja de anidar
+                .println_err; <> con la coma se mantiene en el mismo nivel, con `;` volvemos uno
+            <> volvemos a anidar, desde `.io`
+            .ExternalIO
+                .textOutput
+                    .println :: txt_println;
+                .textInput
+                    .readln :: txt_readln;
+                ;
+            ; <> saltamos atrás de nuevo
+        <> punto otra vez, anidamos
+        .functional
+            .annotations
+                .@curry;
+            .Partial; <> sin necesidad de volver con otro `;` termina la enumeración de desligados
+
+    </
+        Lo mismo puede replicarse así si se prefiere, normalmente en casos complejos, aunque la sintaxis previa
+        no sea ambigua de ninguna manera:
+    ```
+    use std.{
+        .io.{
+            .stdErr
+                .println :: err_println,
+                .println_err;
+            .ExternalIO
+                .textOutput
+                    .println :: txt_println;
+                .textInput
+                    .readln :: txt_readln
+        },
+        .functional
+            .annotations
+                .@curry;
+            .Partial
+    }; <> el punto y coma siempre va al final de los desligados en ambos estilos
+    ```
+        Se han mezclado ambas formas, bare-use-style y curly-use-style, mostrando que son compatibles al 100%, y que, de hecho,
+        la mezcla es lo mejor. El azúcar sintáctico de la versión 1 hace parecer que depende de la indentación sin demasiado
+        esfuerzo, ya que reduce las dependencias de pares de llaves, que si se rompen pueden dar problemas, con pocos caracteres.
+        En resumen: si imaginas los namespaces como carpetas, la coma dice "sigo en el que estaba lo anterior", y el punto y coma
+        vuelve una atrás. Cuando se necesita volver atrás demasiadas veces es cuando el curly-use-style se hace más adecuado.
+
+        El bare-style-use tiene una forma de entenderse simple: escribe rutas, y lo que tenga después `,` o `;`
+        será lo desligado. Si es coma entonces se mantiene en el mismo nivel, y el punto y coma es para, dentro del mismo,
+        el último, como una enumeración larga y anidada al escribir en textos normales. Para volver atrás varias veces
+        se usan varios puntos y coma (aunque si es esto necesario normalmente se recomienda usar un par de llaves
+        con el curly-use-style), pero sin juntarlos, pues si no sería salto de línea.
+    />
+
+    <> MARK: `with` -`in`
+    <><> uso de `with` para declaraciones
+
+    ::: para declarar algo limitado a un scope se puede de varias maneras, siendo esta la que se podría usar sin nada añadido
+    let _ =
+        let aux = 1
+        <> con el paréntesis iniciamos un scope en el que aislar el alcance de `x` a la expresión inferior
+        (
+            let x = 2
+            x + aux
+        ) <> el resultado del paréntesis es el valor devuelto, al que se asigna el underscore
+
+    ::: sin embargo, puedes usar la sintaxis nativa, que tiene tres formas
+    let _ =
+        let aux = 1
+        with {
+            let x = 2
+
+        } in x + aux <> forma uno, para la expresión inmediatamente siguiente
+
+    ::: la forma dos es con llaves inmediatamente tras `in`
+    let _ =
+        let aux = 1
+        with {
+            let x = 2
+
+        } in {
+            x + aux
+        }
+
+    ::: la forma tres invierte el orden, algo útil si se quiere código más "matemático",
+    ::: escaneando el bloque segundo en un primer paso, por lo que aquello definido antes
+    ::: de `with` no se ve en el bloque inferior, para no romper la lectura lineal, y
+    ::: no permitir definiciones cíclicas
+    let _ =
+        let aux = 1
+        :{
+            x + aux
+
+          with
+            let x = 2
+
+            println("Puede haber código además de declaraciones, y se ejecutará antes.")
+        }
+
+    <> En todos los casos la existencia de lo declarado en los cloques `with` está determinada por el código
+    <> que lo consume, pudiendo ser útil para aislar recursos o garantizar acciones.
+
+    <> MARK: Control básico
+    <><><> Algunas estructuras elementales de control
+    </
+    Por defecto se comportan como expresiones, es decir, devolviendo un valor.
+    Para transformarse en sentencias, o ser incompletas (que por poder no devolver nada son siempre sentencias),
+    se puede usar el punto y coma, como se explicará a continuación.
+
+    Primero explicaremos algunas cosas sobre expresiones y sentencias para dar una idea del uso del punto y coma
+    en ciertos casos, y para entender por qué Monom se basa en las expresiones para el parseo del lenguaje,
+    sin depender de la indentación como Python, F# o Haskell.
+
+    En general, el punto y coma siempre tiene la función de transformar una expresión en sentencia, o dicho
+    de otra manera, pues las sentencias son en realidad expresiones, unir la expresión anterior a la siguiente y
+    devolver el valor de la segunda. Tiene algún otro uso minoritario como el visto en los desligados, pero
+    suelen estar muy acotados, de tal manera que siempre se sabe qué significa.
+    Continuando con el ejemplo del caso alternativo del punto y coma que hemos visto ya, queda claro al verlo que es
+    un desligado, y por no mezclarse con el resto del código fácilmente no hay peligro de consufusión.
+    De hecho, en teoría podríamos decir que no es un caso demasiado diferente, ya que al fin y al cabo
+    un desligado es una sentencia, y como tal tiene punto y coma.
+    />
+
+    <> Una expresión elemental puede ser una identificador, una llamada (con paréntesis después, y en la misma línea),
+    <> una operación (que puede extenderse a la siguiente línea si el operador está al final sin completarse),
+    <> un paréntesis (que no vaya después de un identificador en la misma línea, en cuyo caso sería llamada) o también
+    <> una estructura del lenguaje, de las cuales hay varias. Además, existen las sentencias, que no devuelven valores,
+    <> a diferencia de las expresiones, y que en la mayoría de casos pueden entenderse como expresiones combinadas
+    <> si se tiene en cuenta que esperan a continuación una expresión, cuyo valor devolver.
+    <> Las expresiones terminan con un finalizador de expresión, que normalmente es el salto de línea (EOL, equivalente
+    <> a `;;`, como lo pondremos en esta sección para que se vea claramente, aunque es redundante, ya que `;;` solo
+    <> se necesita para finalizar expresiones en una misma línea), o un cierre de mayor escala (como cierre de paréntesis,
+    <> llaves, corchetes, un `end` o el final del archivo).
+    <> Varios `;;` seguidos no tienen más efecto que solo uno, es decir, que `;; ;;` es equivalente a `;;`. No obstante,
+    <> Varios `;` seguidos sí son diferentes, como se ha visto en `use`. Además, NO hay que confundir `; ;` con `;;`,
+    <> pues al juntarse la semántica cambia totalmente. Si se encuentra `;;;` cuenta como `;; ;`, pero no es aconsejable
+    <> en ningún caso, pues usar un simple `;` será suficiente en todos los casos en los que porías haber escrito eso.
+    <> Los `;;` en los casos que se verán a continuación son absolutamente
+    <> omitibles, pero como se dice, están para mostrar los finales.
+
+    ::: una expresión elemental, un valor
+    let _: Int = 3;;
+
+    ::: una expresión elemental, una llamada a función (independientemente de si devuelve algo o `nothing`)
+    let _: Nothing = println("Expression");;
+
+    ::: una expresión elemental que combina corchetes, paréntesis y operadores
+    let _ = [(1 + 2), 3];;
+
+    ::: una expresión elemental, un paréntesis
+    let _ = (1 + 2)
+
+    ::: los operadores pueden omitir el EOL si no están completos,
+    ::: y una operación es también expresión elemental en sí misma,
+    ::: aunque tome dos en sus lados (o uno solo si es unaria)
+    let _ = 1 +
+        2 + 3;;
+
+    ::: En algunos operadores se permite la llamada "redundancia de operadores por legibilidad", que imita a cuando
+    ::: se escriben matemáticas en un papel, y solo es frente a los EOL que sucede esto, por lo que si se escriben
+    ::: en la misma línea se tendrá un error de sintaxis. Tampoco con todos los operadores, aunque sí con
+    ::: los de la aritmética básica, como se podría esperar. La principal ventaja es que tanto a la izquierda
+    ::: como a la derecha de la pantalla se ve la operación a ejecutar.
+    let _ = 1 + <> se queda esperando otro operador
+        + 2 + 3;; <> el operador al inicio es redundante, se omite, pero es últil por legibilidad
+
+    ::: encontrar un operador al principio de la línea no enlaza con la anterior, para así
+    ::: permitir los unarios fácilmente, como `-`
+    let _ = <> el = salta también, esperando una expresión
+        let _ = 1 + 1;; <> con esto no enlaza el menos siguiente
+        -4;;
+
+    ::: al abrir paréntesis, estos son una expresión que devuelve su última expresión interna,
+    ::: llamándose "bloque", y delimitando las expresiones de su interior, lo que es una expresión
+    ::: de nivel superior, pues delimita las interiores
+    let _ = (
+        println("Expr 1");;
+        println("Expr 2");;
+        5 + 6;; <> última expresión, se devuelve
+    ) + 7;; <> sigues pudiendo usar el bloque, que es en sí mismo una expresión elemental por ser un paréntesis
+
+    ::: las sentencias, statements, pueden entenderse como expresiones compuestas de dos expresiones,
+    ::: devolviendo la segunda, y es el caso de por ejemplo las declaraciones vistas hasta ahora,
+    ::: en las que la palabra clave las introducía
+    let _ =
+        let aux = 5;; <> termina la primera expresión de la declaración
+        aux + 47;; <> su segunda expresión se devuelve
+
+    ::: también pueden entenderse como expresiones cuyo valor se omite y se salta a la siguiente
+    let _ =
+        ::: una sentencia (declaración)
+        let a =
+            let b = 1;; <> con otra expresión-sentencia dentro
+            2 * b;; <> que termina aquí, siendo su valor al que equivale `a`, y con ello finalizando la declaración
+        ::: y otra declaración (sentencia)
+        let b = a + 3;;
+        b + 4;;
+
+    ::: por esto el código se ve tan limpio normalmente, sin depender del espaciado,
+    ::: pero dando esa ilusión cuando no hay sentencias impuras
+    let _ =
+        let a =
+            let b = 1
+            2 * b
+        let b = a + 3
+        b + 4
+
+    <> Una sentencia impura es aquella que funciona como tal pero que no debería. Por ejemplo,
+    <> las declaraciones con `let`, `use` y `def` son puras, pues es inherente en estas ser sentencia,
+    <> mientras que un `println()` es una sentencia impura, pues aunque es una llamada a función, que
+    <> es una expresión, funciona omo una sentencia (según el contexto).
+    <> El objetivo es minimizar la cantidad de caracteres para preservar la semántica,
+    <> teniendo a la vez una gramática libre de contexto y no dependiente de la indentación.
+    <> La filosofía detrás es que el código se lee más que se escribe, y que al escribirlo es mejor hacerlo
+    <> de la manera más cómoda posible.
+    <> El código idiomático suele, en la mayoría de los casos, hacer innecesario el uso de puntos y coma,
+    <> algo que se entenderá mejor después cuando se tenga una visión en conjunto.
+
+    ::: Adelantando acontecimientos, algunas estructuras del lenguaje abren expresiones dentro,
+    ::: como el condicional, siendo este el then-style, una expresión que abre dos bloques y
+    ::: una expresión (la diferencia con el bloque es que el bloque dentro puede tener varias expresiones,
+    ::: como pasaba con los paréntesis, que dentro abren un bloque al saberse delimitado).
+    ::: A partir de ahora, el uso de las palabras "expresión" y "bloque" es muy importante, pues indica
+    ::: si se pueden poner varias sentencias impuras o no (y el uso del `;` dentro).
+    ::: Los bloques permiten cualquier código dentro, mientras que si se espera UNA expresión,
+    ::: tener sentencias impuras sin indicar hace que se consideren expresiones, rompiendo la expresión
+    ::: antes de tiempo. No obstante, como se verá, la gran mayoría del código está formado de bloques,
+    ::: para reducir el uso del `;`. En cualquier caso, siempre puedes abrir un paréntesis, que es un bloque.
+    let _ =
+        if
+            println("Expr 1");;
+            println("Expr 2");;
+            true;; <> última expresión del bloque, que termina con `then`
+        then
+            println("Expr 1");;
+            println("Expr 2");;
+            1;; <> última expresión del bloque, que termina con `else`
+        else <> abre una expresión, no un bloque, pues ya no sabe cuándo termina (no hay delimitador de bloque)
+            let a = 1;;
+            let b = 2;;
+            a + b;;
+            <> termina la expresión del condicional, y con ella la de la asignación a `_`,
+            <> ya que todo el condicional, en then-style, era una sola expresión
+
+    <> En conclusión, las expresiones terminan con sus delimitadores, y las sentencias permiten una expresión siguiente,
+    <> encadenando. Los bloques son secuencias de expresiones, y sus delimitadores son también los de las expresiones que
+    <> contienen, hasta el final de bloque. Un bloque es también una expresión en sí mismo, y normalmente existen
+    <> cuando se sabe con seguridad que habrá un delimitador de bloque, como con el condicional (que debe cubrir sus ramas),
+    <> o con paréntesis cuando los abres. El propio archivo es un bloque, y cada posición de argumento de función también,
+    <> aunque no es recomendable usar esto (simplemente es un resultado del sistema, para no tener excepciones).
+
+    <> MARK: condicionales
+    <><> `if` y más
+
+    <> Debe cubrir todos los casos, y devuelve un valor.
+    <> Su forma es con `if` y después la condición hasta las llaves en un bloque,
+    <> el llamado curly-style (`if cond { true } else { false }`), o bien con `then` en vez de llaves,
+    <> el llamado then-style (`if cond then true else false`), que puede combinarse con el curly-style,
+    <> permitiendo tanto `if cond { true } else false` como `if cond then true else { false }`.
+    <> Se permiten también `if cond then { true } else false` y `if cond then { true } else { false }`.
+    <> Si el `else` no lleva llaves después entonces espera una expresión. Cuando en cualquier caso
+    <> se ponen llaves, el cuerpo queda delimitado por estas indefectiblemente.
+    <> El curly-style es mejor cuando se trata de varias líneas, mientras que then style puede preferirse en monolínea.
+    <> Cuando la expresión de una condición ocupa varias líneas, puede recomendarse `then {...}` para recordar
+    <> en el código que se abre un condicional, algo que si no podría ser menos legible cuando hay varias llaves.
+
+    let [esInvertible, b, valorDet] =
+        if let x = det([[1, 2], [3, 4]]) ;; x != 0 { <> la condición aquí solo tiene una expresión, la declaración
+            ["Invertible", true, x]
+        } else [i"No-Invertible (determinante = \(x))", false, 0] <> para una sola expresión, no merecen la pena las llaves
+
+    println("La matriz es " ++ esInvertible ++ (if b then "." else "!") ++ <> como `else` toma una expresión,
+            <> debemos poner paréntesis, para que no tome el `++` como parte de esta, caso en el que igualmente
+            <> se recomienda then-style para que haya algo a la izquierda de toda la expresión (paréntesis)
+            <> ayudando a la legibilidad, aunque `if b then "." else {"!"}` es igual de válido.
+        ++ " ...")
+
+    <> si un if no cubre todos los casos, es decir, que no tiene un caso else,
+    <> debe acabar con `;` tras las llaves obligatorias (no admite then-style)
+    if b {
+        txt_println(i"La matriz era invertible, ya que su determinante es \(valorDet).")
+    }; <> convierte el condicional en sentencia
+
+    <> si inmediatamente tras el if hay llaves, se interpreta de forma similar al `when` de Kotlin,
+    <> y debe cubrir todos los casos a menos que termine con punto y coma, en una forma que
+    <> se puede llamar if-case, y donde cada caso tiene un bloque hasta el siguiente (o el fin de las llaves)
+    if {
+        <> antes de los casos puedes poner código común en un bloque de código
+        let input = readln(" -> ")
+        println(" <- ")
+
+        <> `case` puede ponerse a -2 espacios para evitar indentar de más,
+        <> no es un formateo incorrecto, aunque es más propio de mayores anidaciones,
+        <> pues si no el formateador prefiere la claridad de los 4 espacios, e indentaría
+        <> cada bloque de cada caso
+      case Number.is_number(input) =>
+        let
+            _num = input as Number,
+            num = _num + 5
+        <> en los if-case, los cuerpos son bloques, por lo que aquí no termina el bloque, sino la primera expresión,
+        <> compuesta de una declaración múltiple y su consiguiente expresión siguiente (el `print`)
+        print(i"\(input as Number) +")
+        println(i" 5 = \(num)")
+
+      case else => println(i"'\(input)' no es un número.")
+    }
+
+    <> este formateo es más común cuando hay poco anidamiento
+    if {
+        case v16 < 20 =>
+            println("Esto pasará.")
+
+        case v16 >= 20 && v16 < 50 =>
+            println_err("Esto no debería pasar.")
+    }; <> por no cubrir todos los casos, debe terminar con `;`, al no devolver un valor
+
+    <> para múltiples condiciones, se pueden usar ramas `elif`, con igual funcionamiento
+
+    ::: esto para acortar el código, un desligado de un solo elemento con renombrado
+    use Number.is_number :: isn;
+
+    let input = txt_readln(" -> ")
+
+    if
+        println(i"the input is \(input)")
+        isn(input)
+    then { <> ejemplo donde usar llaves además de then viene bien, por legibilidad
+        textInput.println("Es el número " ++ input as Number)
+    } elif let size = input.size() ;; size < 10 then { <> la sintaxis es igual
+        println(i"\(size) < 10")
+    }
+    elif { <> como con if-case, también existe elif-case
+        case true => println("Puede")
+        case false => println("Nunca")
+    } <> si en un elif usas casos, entonces debe ser la última rama, pues los demás casos o el `else`
+    <> se pueden expresar como ramas `case` aquí, haciéndolos innecesarios
+
+    <> otro ejemplo
+    if false {
+        println("Nunca")
+    } elif {
+        <> se permite igual código común en un elif-case, como en los if-case
+        let next: Int | None = textInput.next_int()
+
+        case next == none =>
+            println("No hay un entero.")
+
+        case next.not_none() && next < 8 =>
+            println(i"\(next) < 8")
+    }; <> por no haber cubierto todas las posibilidades, debe terminar con `;`, y se termina el condicional,
+    <> algo con sentido pues no necesitas más ramas (las has tenido ya como casos), y has prescindido del caso `else`,
+    <> pues, recordemos, los casos son la última rama de un condicional
+
+    if
+        let sel = new Selector{max} <> obtenidos `Selector` y `max` mediante `use std.selection.*` antes
+        sel.pick(1, 2) == 1
+    <> `then { }` para que dejes claro que esas llaves abren un condicional,
+    <> de otra manera la llave habría quedado en posiciones menos legibles (suelta o tras `== 1`)
+    then {
+        println("Esto no debería pasar, pues hemos seleccionado de criterio el máximo.")
+
+    } andelif sel.pick(-5, 76) == 76 { <> solo si la condición anterior se cumple, evalúa esto
+        <> tiene de beneficio que quita un nivel de tabulador
+        println("Nunca, porque aunque su condición sea verdad, la primera no lo es.")
+
+    } andelif false { <> de igual manera, hay `andelif` (aunque no sea obligatorio, como `elif`, que tampoco lo es)
+        println("Nunca.")
+
+    } andelse none <> requiere el caso andelse, y admite then-style también, es decir, terminando con una expresión, no bloque,
+        <>aunque eso no es recomendable en la mayoría de los casos, pues después habrá un `elif`
+
+    elif sel.pick(-4, -2) == -2 then <> después siguen los casos del condicional principal
+        println("Esto sí.")
+
+    andif let b <- esInvertible ;; valor = sel.select([1, 2, 3, 4]) ;; b then
+        println("-:::-")
+
+    andelif true {
+        <> admiten casos igual, pero obligan a cubrir todos los casos, no admitiendo `;`
+        case valor < 6 =>
+            println("TRUE")
+
+        case else =>
+            println("FALSE")
+
+    }; <> y con esto termina el `elif`, siendo el punto y coma del condicional principal
+
+    <> Como se ha visto, los andconditionals siempre deben estar completos, ya sea con `andelse`
+    <> o cubriendo todos los casos en los andconditional-case.
+
+    <> MARK: `when`
+    <><> when
+
+    ::: Funciona como un `if` con la condición puesta entre medias, lo que a veces es mejor para la legibilidad.
+    ::: Toma la expresión de la izquierda, un bloque en el centro y otra expresión a la derecha, y constituye
+    ::: en su conjunto una expresión completa
+    let esInvertible = true && true when det([[1, 2], [3, 4]]) != 0 else false <> admitiría también else { false }
+
+    <> esta estructura muestra su potencial cuando se usa en condicionales múltiples cortos,
+    <> caso en el que imita un poco la forma de escribir en matemáticas
+    abs_div(x: Int) =
+        1 / x   when x > 0      else
+        0       when x == 0     else
+        1 / -x  when x < 0      else () <> nothing
+
+    <> En el código anterior, las expresiones en los `else` de los dos primeros `when` son otras expresiones `when`.
+
+    println("Verdad") <> tiene prioridad sobre los saltos de línea, por lo que este código funciona
+      when
+        true
+      else { <> admite llaves después, claro
+        println("Imposible")
+        1 + 1
+    }
+
+    ::: se permite transformarlo en statement si se envuelve en llaves su condición y se termina con `;`
+    println("true") when { true };
+
+    <> Su uso se puede entender como los `if` de python cuando se ponen en una sola línea,
+    <> y es con esa idea con la que se han creado, pero sin ambigüedad con la posición de la condición,
+    <> gracias a distinguir las palabras `if` y `when`.
+    <> Tras las llaves, como en la línea de código arriba de estos comentarios, puede haber un `else`,
+    <> útil por ejemplo al tener una condición compleja, siempre que no haya un punto y coma, que
+    <> como se ha visto denota que una expresión termina.
+    <> Importante entender que `when` toma a sus lados UNA expresión por cada uno, que bloque es
+    <> el situado en la condición, entre `when` y `else`.
+
+    <> MARK: Arrays
+    <><><> Arrays
+    </
+    Los arrays son estructuras de datos nativas representadas por el tipo `___Array___`,
+    que tienen un tamaño conocido y que guardan sus datos de forma contigua. Se pueden dividir
+    en dos formas: cerrada, que usa corchetes, y abierta, con el operador `...`.
+
+    Pasar de una a otra es sencillo, y la única diferencia es que los arrays abiertos se solapan automáticamente,
+    como se explicará ahora. Tienen ambos orden y más o menos las mismas propiedades. Las operaciones son optimizadas
+    libremente por el compilador, por lo que para interoperabilidad no se tiene garantía del layout.
+    Las operaciones de fusión pueden tener costes inesperados si se necesita copiar una estructura grande, aunque en
+    esos casos el compilador puede elegir transformarlo en un puntero a la otra, resultando en una lista enlazada por bloques.
+    Los arrays, al contrario que en la mayoría de lenguajes, pueden tener en sus posiciones nombres, como una struct de C,
+    no hay diferencia array - struct como tal.
+    />
+
+    ::: un array cerrado (array, por defecto, como diremos normalmente)
+    let arr1 = [1, 2, 3]
+
+    ::: otro array
+    let local arr2 = [1, 2, 3, 4]
+
+    ::: el tipo se pone con la longitud antes, entre corchetes, y con dos puntos al inicio
+    let arr3: [:2]Int = [-3, 3]
+
+    ::: puede ser heterogéneo
+    let arr4 = [1, "X", 5.6]
+
+    ::: si es heterogéneo, el tipo se pone sin los dos puntos
+    let arr5: [Int, Int, String] = [1, 2, "Y"]
+
+    ::: un array abierto
+    let arr6 = ...[1, 2, 3]
+
+    ::: para cerrarlo, se envuelve en corchetes, y, aunque no haga nada,
+    ::: poner ... antes deja clara la intención
+    let arr7: [:3]Nat = [...arr6]
+
+    ::: para expresar su tipo, se pone con el spread igual
+    let arr8: ...[:2]Int = ...[1, 2]
+
+    ::: las definiciones funcionan como se espera
+    def arr9: [:4]Int
+
+    ::: al anidarse, los arrays abiertos se aplanan
+    let arr9 = [1, ...[2, 3], 4]
+
+    ::: para anidar arrays, se usan los cerrados
+    let arr10:
+        [Int, [Int, ...[Int] </en los tipos se aplanan también/>], [:2]Int] = [1, [2, 3], 4]
+
+    ::: si se aplica `...` a algo que no es array cerrado, el objeto al que se aplicó se queda igual,
+    ::: algo que se puede usar, como se dijo en el caso anterior, para dejar clara la intención
+    let arr11: ...[Int, Int] = ...(...[...1, 2]) <> `...1 == 1` es verdadero
+
+    <> MARK: structs
+    <><> posiciones nombradas en structs
+
+    ::: podemos decir que una struct es aquel array en el que algunas posiciones tienen nombre
+    let s1 = [.primerElemento = 1, .segundoElemento = 2, 3] <> pero no todo debe tener nombre
+
+    ::: y se accede como si fuera un campo normal
+    let _ = s1.primerElemento
+
+    ::: por índice sigue siendo accesible (empieza el primer índice en cero)
+    let _ = s1[0]
+
+    ::: en el tipo puede ponerse, y si el array de origen no tiene campos, los añade,
+    ::: y si un campo se deja sin definir, su tipo se infiere
+    let s2: [.name: String, .age: Nat, Bool, .birthYear] = [...["Juan", 35], true, 1991]
+
+    ::: En los campos puedes asignar arrays abiertos, lo que lo pone contiguo en el array principal,
+    ::: pero oculta sus campos salvo que se acceda directamente por el campo. Acceder lo retorna
+    ::: como array cerrado, pues es más fácil abrir que cerrar, además de que normalmente se usa
+    ::: cerrado en el código. Aunque el compilador suele tener el array contiguo en el array huésped,
+    ::: incluso sin `...`, a veces con un array de gran tamaño lo guarda tras un puntero, por lo que
+    ::: hacer el spread en el campo sirve para garantizar que no es así, aunque hay que tener cuidado
+    ::: con lo que se mete, y hay algunas limitaciones (como que el tamaño debe conocerse en compilación).
+    ::: Al hacer el spread de un campo, la longitud del array es la suma, y los índices así lo muestran.
+    let s3: [Int, .x: Int, .y: ...[Int, .z: Int], .z: Int] = [1, .x = 2, .y = ...[3, .z = 4], .z = 5]
+
+    ::: nos da 4
+    let _ = s3[3]
+    ::: nos da 5
+    let _ = s3[4]
+    ::: nos da 5
+    let _ = s3.z
+    ::: nos da [3, .z = 4]
+    let _ = s3.y
+    ::: nos da 4
+    let _ = s3.y.z
+
+    <> Por lo tanto, como se ve, con o sin campos el tamaño y los índices de un array se ven afectadosç
+    <> cuando se usan arrays abiertos. Sin embargo, cuando una posición nombrada es un array abierto, que
+    <> por tanto se ha aplanado en el array que posee el campo, el campo de esta se refiere a toda, pero
+    <> los campos de lo abierto (si los tiene) no son visibles en el array mayor. Las pruebas vistas encima
+    <> de este comentario así lo muestran.
+
+    ::: con la directiva de struct, se cierra el acceso por índice, solo se permite el acceso por campos
+    ::: afectando a los niveles de visibilidad asociados al prefijo aportado, que por defecto es `local`,
+    ::: que cierra el acceso por índice siempre
+    @[struct(private)] <> solo permite usar índices en este archivo
+    let s4 = [.x = 1, 2] <> no obliga a poner campos en todo
+
+    @[struct] <> `local` (valor por defecto), equivalente a `@[struct(local)]` o a `@[struct()]`
+    let s5 = [.x = 1, .y = 2] <> ahora sí obliga a poner campos a todo, pues si no serían inaccesibles
+
+    <> Esto permite hacer privadas posiciones de un array evitando su acceso por índice.
+
+    <> MARK: versionado
+    <><> versionado
+
+    ::: crearemos un array de pruebas
+    let arr = [0, 1, .a = 2, .b = [.x = -1, .y = -2], .c = ...[-1, .x = -2]]
+
+    ::: se crea un array nuevo, sustituyendo en orden por elementos nuevos en la copia
+    let arr12 = arr.[4, 5, ...] <> con ... olvidamos el resto
+
+    ::: podemos olvidar posiciones, ya sea con _ (recomendado) o poniendo lo mismo
+    let arr13 = arr.[5, _, arr[2], ...] <> olvidamos la posición del índice 1 (dejándola igual),
+        <> mientras en la siguiente ponemos lo mismo, que es una manera poco elegante de no tocar ese elemento
+
+    ::: se pueden añadir campos
+    let arr14 = arr.[..., 3, .d = 65] <> ha ganado un elemento y otro elemento con campo
+
+    ::: y también versionar por campos
+    let arr15 = arr.[.a = 54, ...]
+
+    ::: mezclando ambos (se pierde el orden una vez se usan campos)
+    let arr16 = arr.[1, .a = 66, ...]
+
+    ::: empezando por el final
+    let arr17 = arr.reverse().[6, 5, ...]  <> alterando los elementos de la VIEW `.c` (..., 5, 6)
+
+    ::: versionando campos que son arrays, tanto abiertos como cerrados
+    let arr18 = arr.[
+        2,
+        .b = [4, 5],
+        .c = [0, 0] <> aunque `.c` se declarara como abierto, puedes asignar uno cerrado, por comodidad
+    ] <> no hacen falta puntos suspensivos por haber cubierto hasta el último elemento,
+    <> una medida de seguridad para que no olvides nada, y para poder saber cuándo se añaden campos
+
+    ::: puedes profundizar en la jerarquía de campos,
+    ::: como se ve aquí con `.c.x`
+    let arr19 = arr.[_, 2, .c.x = -5]
+
+    ::: así también
+    let arr20 = arr.[0, .c.[0, ...]]
+
+    ::: se pueden encadenar las versiones, y expandirlas
+    let arr21: [:3]Int =
+        [1, 2]
+        .[0, 1] <> pasa a ser [0, 1]
+        .[3 - 1, ...] <> pasa a ser [2, 1]
+        .[3, _] <> pasa a ser [3, 1]
+        <>  ^^^ (sustituir `_` por `...` habría sido igual, aunque cuando solo queda un elemento, mejor `_`)
+        .reverse().[4, ...] <> pasa a ser [3, 4]
+        .reverse().[-3, ..., 5] <> pasa a ser [-3, 4, 5]
+        .[..., 6, .seven = 7] <> y termina siendo [-3, 4, 5, 6, .seven = 7]
+
+    <> El punto enlaza siempre con lo anterior, como se ve en el último ejemplo, sin importar el espacio, los saltos de línea,
+    <> los comentarios o la documentación entre medias, y normalmente tampoco las directivas ni las anotaciones.
+
+    ::: con esta anotación (no directiva, pues las anotaciones las puede crear el usuario) puedes crear,
+    ::: si no existe ya, un método llamado `.rev` de alias para `.reverse`, cómodo si se usa mucho
+    @new_method_rev_as_reverse
+    let arr22: [:2]Int = [1, 2]
+
+    ::: ahora dispones de ambos
+    let _ = arr22.rev() <> da [2, 1]
+    let _ = arr22.reverse() <> da [2, 1]
+
+    ::: nos da 4
+    let _ = arr21[1]
+    ::: nos da [4, 5]
+    let _ = arr21[1, 2] <> al pasar varios índices se devuelve el array de estos
+    ::: nos da [-3, 4, 6]
+    let _ = arr21[0, 1, 3] <> no tienen que ser consecutivos, aunque si lo son es mejor para el rendimiento
+
+    ::: en el tipo, los aliases funcionan igual
+    use
+        _ = [Int, Int, .x: Nat],
+        _ = [:4]Int
+
+    <> MARK: Funciones
+    <><><> Funciones
+    </
+    Se cubrirá solo la parte elemental sobre funciones, pues para entenderlas en profundidad hacen falta conceptos más avanzados,
+    y el cómo hacer uso de ellos. Las funciones son fundamentales en Monom, y son de orden superior, por supuesto, por
+    lo que pueden pasarse como argumentos a otras funciones o estructuras en general: son ciudadanos de primera clase.
+    Además de su tipado, explicaremos la delimitación de su cuerpo mediante expresiones, `return`, el uso de `;` en funciones,
+    lambdas, matching en declaraciones de dos pasos, sobrecargas con tags y funciones mixfix.
+    />
+
+    ::: una función simple, con tipos deducidos por inferencia
+    let local f1(x) = x + 5 <> los prefijos funcionan igual
+
+    ::: puedes tipar así también (ejemplo con prefijo, que no es necesario siempre)
+    let (_f1: Int -> Int)(x) = x + 5
+
+    ::: para anotar tipos, puedes hacerlo igual que en otras partes, poniendo el tipo de la expresión de la función,
+    ::: que es lo que se encuentra entre `let` y `=`, como `Int` en este caso, el tipo de la llamada a la función
+    let f2(x: Int): Int = x - 5
+
+    ::: puedes poner solo parte
+    let f3(x: Int) = x * 5
+
+    ::: retorno solo también
+    let f4(x): Float = x / 5
+
+    ::: las declaraciones son con flechas para indicar una función, y valen las definiciones perfectamente
+    def
+        f5: Int -> Int,
+        ::: los prefijos funcionan como esperas
+        local f6: (Int, String) -> Int, <> varios argumentos
+        ::: puedes indicar solo el retorno
+        f7: -> Int,
+        ::: o solo los argumentos
+        f8: Int ->, <> debe haber un fin claro, por lo que si no estuviera la coma de definición múltiple
+        <> deberías envolver el tipo en paréntesis, como aquí (aunque tampoco hiciera falta):
+        f9: (Int -> ), :::<- Como se ve, el tipado es muy similar al de los valores simples o arrays
+        ::: puedes indicar que es una función sin dar más detalles
+        f10: ( -> ),
+        ::: o sin argumentos
+        f11: Nothing -> Bool <> Nothing y `(:)` son equivalentes
+
+    ::: también puedes nombrar anticipadamente los argumentos, mediante la misma sintaxis
+    def df1(x: Int): Nat
+
+    ::: y luego implementar con esos nombres
+    let df1(x) = x.abs()
+
+    ::: en las funciones puedes indicar dónde irían los argumentos con un punto solitario
+    def _df(., .): -> Int <> de momento, sin poner el tipo de entrada, hemos dicho ya que son dos argumentos
+
+    ::: y se implementa igual
+    @[inline] <> sirve para insertar la función en su lugar de llamada siempre
+    let _df(x, y) = x * y
+
+    <> La directiva `@[inline]` no es válida en las funciones recursivas, pues entonces llevaría a insertarse infinitamente,
+    <> por lo que debes imponer un límite de veces (por defecto 1) así: `@[inline(2)]`, o `@[inline()]` para tomar
+    <> el argumento por defecto. Esto hace que se creen también las versiones que no son inline para cuando se ha llegado
+    <> al límite. La explicación de que debas poner argumento para limitar responde a una promesa del compilador:
+    <> si tiene `@[inline]` se garantiza que se hará el inline siempre, y que por tanto NO existirá una versión compilada
+    <> de la función, mientras que al poner el argumento ya permites que esa versión exista, aunque se vaya a hacer
+    <> la inserción mientras el contador no exceda el impuesto por ti. El contador tiene un límite de 255, que se recomienda
+    <> no superar nunca, aunque para funciones recursivas cortas puede entenderse como forzar `loop unrolling` masivo.
+    <> Cuando una función es demasiado grande no se hace inline, sino que salta un error, que es el valor por defecto
+    <> de configuración. Para forzarlo existe `@[inline_always_despite_the_size]`, admitiendo los argumentos igual.
+    <> El nombre es intencionalmente largo para que seas consciente.
+
+    ::: en múltiples funciona igual
+    def
+        df2(x: Int, y: Int), :::<- indicando solo los argumentos, equivalente a `df2(x, y): ((Int, Int) ->)`
+        df3(): (:), :::<- sin argumentos y sin retorno
+        ::: si  quieres aprovechar esta sintaxis, pero no decidir los nombres de los argumentos aún,
+        ::: puedes usar el underscore, pues a veces resulta más cómoda esta forma (o el punto solitario)
+        df4(_: Int): Float <> equivale a df4: Int -> Float
+
+    ::: e implementamos...
+    let df2(x, y) = x + y
+
+    ::: funcionando de igual manera que con todo
+    let
+        df3() = println("df3 se ejecuta"),
+        df4(n: Int :/<- ponemos el nombre al argumento, y podemos repetir tipado /:) = n / 2
+
+    ::: como con los valores antes, el tipo ya se conoce, y puede bastar con lo que anotes por claridad siempre que
+    ::: no haya conflictos con lo definido (aunque las definiciones pueden aprovecharse para separar el tipo)
+    let f5(x) = x // 5, f6(i, s) = i + s.size()
+
+    ::: las funciones pueden ser recursivas, a menos que uses `@[not_recursive]`
+    let f7(x: Int) =
+        let aux = x ** 2 <> potencia
+          f7(x - 2) when x > 5
+        else {
+            let aux * <- aux + 1 <> equivalente a let aux <- aux * (aux + 1)
+            aux + x
+        }
+
+    <> Para convertir una función recursiva en un bucle a nivel de ensamblador, puedes usar `@[force_recursive_to_loop]`,
+    <> aunque suele ser el comportamiento normal. Esa directiva prohíbe la recursión que no sea de cola.
+    <> Para simplemente garantizar que es de cola, sin escribir la directiva anterior (que puede ser larga), puedes usar
+    <> esta otra directiva: `@[force_tail]`, que garantiza en ensamblador un salto simple.
+
+    ::: Los cuerpos de las funciones devuelven un valor, el de la expresión tras `=`. Para que una expresión no sea la última,
+    ::: debes convertirla en sentencia, algo que ya es natural de muchas estructuras del lenguaje. El símbolo clave es `;`.
+    let f8(x): [Int, Int] =
+        use numericAlias = 123_456
+        def aux1: Int
+        let aux1 = x + 5
+        if aux1 > 66 {
+            textOutput.println(i"\(aux1) < 66")
+        }; <> termina como statement, se sigue
+        let aux2(y) =
+            y * 3 + numericAlias
+        [aux2(aux1), x - numericAlias] <> termina con la última expresión
+
+    let f9(x): Int =
+        if x == -17 {
+            return() <> con return puedes salir antes de la función
+        }; <> se continúa tras el punto y coma
+        let aux: String =
+            if x < 100 then ":-"
+            elif x >= 100 then ":--"
+            else {
+                println_err("Imposible")
+                return() <> sale de f9
+            } ++ x ++ " != " ++ -17 <> esta expresión se asigna a `aux`
+        if true { println(aux) };
+        6 + 6 <> última expresión
+
+    <> MARK: punto y coma
+    ::: Debido a que si pones algo interpretable como valor último (tras un igual hay 1 sola expresión)
+    ::: la función (o expresión en general) terminaría ahí, y a que la gramática es libre de contexto,
+    ::: necesitas una manera de poner que algo no devuelve un valor, y que se pase a la siguiente línea.
+    ::: Esto es importante en expresiones incompletas y en funciones que no devuelven un valor,
+    ::: pero que de ser la última expresión terminarían el cuerpo de esta con tipo `Nothing`.
+    ::: Esas son las sentencias impuras, normalmente funciones sin retorno.
+    ::: El punto y coma es el signo general para esto, que ya se ha explicado con expresiones de control
+    ::: que no devuelven valor por estar incompletas (`if`, `when`, `if-case`...): todas terminan en punto y coma.
+    ::: Convierte algo en sentencia (aunque tenga otros usos mínimos e inconfundibles en los `use` desligando
+    ::: y en ciertas importaciones, que de todas maneras son sentencias, por lo que es coherente).
+    let f10(): (:) -> Int = <> Nothing -> Int
+
+        ::: con paréntesis envolviendo el bloque entero se devuelve de su interior la última expresión
+        let m1: Int = (
+            println("Hey!") <> y por tanto es un bloque, en el que se permiten indeterminadas expresiones
+            4 + 4
+        )
+
+        ::: otra manera, poco recomendada, es convertir en declaración
+        let _ = println("Hey!") <> devuelve el valor `()` (`nothing`) y lo guarda en `_`
+
+        <> para que no haya problemas por valores útiles descartados
+        @[not_used_interesting_value_of_expression("off")]
+
+        ::: el punto y coma descarta el valor de la expresión anterior, con menor precedencia que los operadores,
+        ::: ya que una operación es en sí misma una expresión
+        m1 * 2; <> valor ignorado, aunque no es correcto ignorarlo
+
+        @[not_used_interesting_value_of_expression("on")]
+
+        let _ = 1, _ = 2, _ = (
+            println("3") <> Cuando se está en un bloque, no hace falta usar `;`, pues la expresión en conjunto es el bloque
+            println("_") <> otra expresión, pero al no ser la última no se devuelve, y sabe que no termina porque espera `)`
+            3 <> última expresión, se devuelve
+        )
+
+        ::: sin paréntesis sí hace falta
+        let _ =
+            println("X"); <> sin esto, la expresión sería la llamada a la función
+            3
+
+        <> para pequeñas partes de código cuyo valor no interesa como final de expresión, el punto y coma es muy útil
+        if {
+            case m1 > 5 => println(i"\(m1) > 5")
+        }; <>
+
+        <> aquí de nuevo no hace falta porque estamos en un bloque, que al ser abundantes reducen los puntos y coma
+        println("Esta llamada a función no es la última expresión de la función `f10`.")
+
+        ::: si no se quiere escribir tanto el punto y coma, lo recomendado es crear una expresión de efectos secundarios
+        ::: con paréntesis, y después omitir todo el conjunto, aunque si esto va a ser la norma, el consejo es que todo el cuerpo
+        ::: de la función principal esté entre paréntesis, como es el caso de `main` en este archivo
+        let m2 =
+            let mm = 0xFFFF
+            ( <> unos paréntesis normales
+                let aux = 3
+                if true {
+                    println("true")
+                }; <> Para las expresiones de control incompletas siempre se necesita punto y coma,
+                <> que coincide con su función normal en cualquier caso, y se necesita incluso entre paréntesis,
+                <> ya que Monom pide eso para que seas consciente si te faltan ramas o casos por cubrir,
+                <> y conscientemente dices "no me importa", dejando además claro con el punto y coma que esa no puede
+                <> ser la última expresión, cuyo valor se devuelva.
+                println("1")
+                println("2") <> SIN punto y coma
+                println(aux)
+            ); <> descartamos todo de golpe
+            mm + 56
+
+        ::: Como se ha visto, el paréntesis es una expresión que dentro abre un bloque, aunque bloques hay
+        ::: también en los condicionales y los casos, por lo que es poco común ver mucho `;` en el código.
+        ::: Además, en los paréntesis, como expresión, visto en la expresión de `m2`, en la que omitimos todo
+        ::: su contenido (en realidad, la expresión en sí misma, no el contenido, no es distributivo el punto y coma),
+        ::: no hay nada especial como sí en las llaves de otros lenguajes (en Monom son para estructuras del lenguaje
+        ::: determinadas). Fijándonos bien, cuando se usan llaves estas delimitan completamente un bloque, no como
+        ::: los paréntesis que pueden omitirse (no son delimitadores del cuerpo de una función, son la expresión a
+        ::: la que esta equivale). Se dispone de llaves tras el igual, como se ve en el siguiente ejemplo:
+        let _(x: Int): Int = {
+            <> no hace falta punto y coma porque es un bloque, no debemos decir que no sea esta la última expresión
+            <> porque no hay dudas de ello, termina con las llaves, por ser un bloque
+            println("Block")
+            ::: pero dentro, si hay una nueva expresión, se replica el sistema
+            let _ =
+                println("Necesario"); <> porque ahora se espera una expresión, y queremos decir que esta no es
+                5 + 5 <> ahora sí es la última expresión
+
+            x * 7 <> esta sí es la última expresión del bloque
+        } <> y a diferencia de con los paréntesis, donde un punto y coma aquí sería como mantener el cuerpo de la función,
+        <> en las llaves no puedes extenderlo, pues las llaves siempre delimitan el cuerpo íntegro de una estructura (como
+        <> una declaración en este caso), algo que se ve en `else { ... };` vs. `else ( ... );`:
+        <> con llaves (curly-style), el cuerpo queda acotado, aunque dentro sea un bloque de expresiones, y el punto y coma
+        <> afecta a todo el condicional porque se sabe ahí terminado, mientras que con los paréntesis, el cuerpo de la rama
+        <> del `else` sigue abierto, esperando la expresión con la que terminarse, cuando pones tras estos `;`.
+
+        <> y la función `f10` termina con la última expresión
+        m1 + m2
+
+    <> En general, se prefieren varias funciones cortas y modulares antes que pocas muy grandes,
+    <> algo que la sintaxis refleja, pues para funciones pequeñas basta con el modelo de expresiones,
+    <> sin necesidad de bloques grandes. Además, para operaciones complejas por pasos, es recomendable
+    <> ir declarando por el camino las partes, de tal manera que sus nombres sean código autodocumentado,
+    <> y que se pueda razonar correctamente por cada parte. No obstante, como el mundo real no siempre
+    <> es puro matemáticamente, la existencia de bloques en casi todo (como se ha visto ya) es positiva,
+    <> pues estos permiten usar las expresiones como sentencias, aunque no lo sean (son sentencias impuras).
+
+    <> usar un punto y coma de forma innecesaria no produce errores, solo warnings,
+    <> y el formateador los puede eliminar si se le da permiso
+    if true {
+        println("true"); <> <<< este punto y coma sobra, no estamos manteniendo ninguna expresión
+    } else {
+        println("false")
+    }; <> <<< este punto y coma sobra también, la estructura del condicional está completa
+
+    ::: recordemos que puedes poner tipos de nuevo aunque ya se haya definido lo que sea
+    let (f11: Nothing -> Bool)(): Bool = <> los tipos así son válidos, al fin y al cabo, `f11` es una expresión de ese tipo
+        println("f11 se ejecuta"); <> omitimos esta expresión
+        !false <> !false = true
+
+    ::: para definir por un lado el tipo de algo y por otro inicializarlo, pero sin escribir `def` y `let`,
+    ::: puedes usar la declaración de dos pasos: cuando hay coma antes de un igual (`=`) en la declaración `let`
+    let f12: Int -> Int,
+        f12(x) = x + 5
+
+    ::: funciona también con valores, en general con todo
+    let someValue: Int,
+        someValue = 4 <> solo que en valores normalmente no tiene demasiado sentido como azúcar sintáctico
+
+    <> No se puede compartir un `let` para varias de dos pasos, es una restricción por motivos de legibilidad,
+    <> pues, si se permitiera, el significado de la coma variaría en el mismo nivel entre separar declaraciones de dos pasos
+    <> y las partes de estas, algo que no compensa el ahorro de solo tres letras del `let` y un espacio.
+
+    <> MARK: lambdas
+    <><> funciones lambda
+
+    ::: puedes crear una función anónima llamándola `fun` como si ese fuera su nombre
+    let lam1: Int -> Int =
+        fun(x: Int): Int = x * 5
+
+    ::: el tipado funciona igual
+    let lam2: (Int, Int) -> Int,
+        lam2 = (fun: (Int, Int) -> )(x, y): Int = x + y
+
+    ::: también puedes usar la sintaxis abreviada, las llamadas "soft-lambdas" frente a las anteriores "hard-lambdas"
+    let lam3 = x => x + 1
+
+    <> MARK: recursión
+    <><> recursión de lambdas
+
+    ::: las hard-lambdas pueden llamarse a sí mismas usando la palabra clave `lambda`, que referencia a la más interna
+    let factorial1(n): Nat =
+        ...[1, n] <> las funciones en teoría toman un array abierto de único argumento
+        |> fun(acc, num) =
+            if num <= 1 then acc else lambda(acc * num, num - 1)
+
+    <> El motivo por el que las funciones toman conceptualmente un solo argumento, que es un array abierto,
+    <> es que así permite que trates las series de argumentos como datos en sí mismos (arrays), permitiendo combinarlos,
+    <> algo que no es fácil en caso contrario, en el que estás obligado a escribir a mano el paso de argumentos (o a usar
+    <> tácticas alternativas del lenguaje como variádicas o pasar arrays para casos excepcionales, algo contrario a Monom:
+    <> el código general debe ser el más favorecido), o en la aplicación por espacio de algunos lenguajes funcionales,
+    <> que introduce problemas de ambigüedad que empañan la sintaxis (como limitar el acceso clásico por índice de caja)
+    <> y que igualmente no permite fácilmente pasar argumentos como si fueran arrays.
+
+    ::: otro ejemplo de recursión, en el que se usa un valor puente para guardar la lambda externa
+    let collatz(number: Int): Nat =
+        let is_even(n) = n % 2 == 0
+        let is_odd(n) =
+            n % 2 == 1
+        let num: Nat = (
+            if [1, 2, 4, -1, -2, -4].has(number) then return 0
+            else number
+            ).abs()
+        let even_func = fun(times: Int, n: Nat): Int =
+            let even = lambda :::<- valor puente, guardamos la lambda actual
+            let n2 = n / 2
+            if {
+              case [1, 2, 4].has(n2) => times
+              case is_odd(n2) => (
+                    fun(times2, nn): Int = if {
+                        let n3 = 3 * nn + 1
+                      case [1, 2, 4].has(n3) => times2
+                      case is_even(n3) => even(times2 + 1, n3)
+                      case else =>
+                        lambda(times2 + 1, n3)
+                    }
+                )(times + 1, n2)
+              case else => lambda(times + 1, n2)
+            }
+        if is_even(num) then even_func(0, num) else even_func(-1, 2 * num)
+
+    <> Nótese cómo manejar expresiones permite un código modular, reutilizable y que es limpio,
+    <> pareciendo dependiente de la indentación, y sin ningún punto y coma.
+
+    ::: en realidad, un código más legible para la función sería así
+    let collatz_2(number: Int, times: Nat = 0 </ argumento por defecto />): Nat = if {
+        let num = number.abs()
+      case [1, 2, 4].has(num) =>
+        times
+      case else =>
+        if Number.is_odd(num)
+        then <> abre un cuerpo
+            println(i"\(num) is odd")
+            collatz_2(3 * num + 1, times + 1)
+        else collatz_2(num / 2, times + 1)
+    }
+
+    <> En ambos casos el código queda limpio. Sin embargo, confundirse en ciertas situaciones con el punto y coma
+    <> puede dar lugar a errores que cambian todo mucho del AST del código, lo que por suerte es casi imposible que cuadre,
+    <> avisando del error desde dentro hacia afuera. Por ejemplo:
+    let _demo1 = 4;
+    println("Hey!")
+
+    <> Este código es correcto, pero no hace lo que esperas. En realidad, tras el igual se espera una expresión, y
+    <> se encuentra `4`, un identificador, expresión elemental que el punto y coma descarta, por lo que pasa a la siguiente
+    <> expresión, la llamada a la función, cuyo valor se devuelve y guarda en `_demo1`. Sin embargo, cuando uses
+    <> `demo_` su tipo no será `Int`, sino `Nothing`, por lo que dará errores. Además, has ignorado el `4`, un valor útil,
+    <> otro error, y si habías declarado `_demo1` como `Int`, el error será inmediato: `Int` no es `Nothing`.
+
+    ::: el formateo correcto
+    let _demo2 =
+        4; <> aunque sigue dando error ignorar el 4
+        println("Hey!")
+
+    ::: currificar es sencillo, sobre todo para cosas simples con las soft-lambdas (cuando no hace falta recursión)
+    let lam6: Int -> Int -> Int = (x: Int) => (y: Int) => x + y
+
+    ::: da 3
+    let _ = lam6(1)(2)
+    ::: declaración de dos pasos donde hemos pasado un argumento a la función currificada y nos devuelve otra función
+    let lam7: Int -> Int,
+        lam7 = lam6(-5)
+
+    <> MARK: mixfix
+    <><> funciones mixfix
+
+    ::: de igual forma que definimos funciones normales, se puede con las que llevan los argumentos intercalados en el nombre
+    let add(x: Int)and(y: Int): Int = x + y
+
+    ::: si todos los fragmentos no son iguales no se considera la misma función
+    let add(x: Int)and(y: Int)and(z: Int): Int = x + y + z
+
+    ::: Primero debe haber un identificador, y se debe terminar con argumentos.
+    ::: De hecho, las funciones normales son un caso particular de mixfix con un solo fragmento identificador.
+    ::: Admiten todo lo dicho hasta ahora sobre funciones, como la definición, las declaraciones de dos pasos...
+    ::: usando de identificador su nombre con un punto donde sus argumentos irían situados.
+    def add(., .)plus(.): (Int, Int, Int) -> Int
+
+    ::: luego podemos implementarla perfectamente, incluso con declaraciones de dos pasos
+    let add(., .)plus(.), <> aunque haya una definición (no declaración) previa se puede usar la declaración de dos pasos
+        add(x, y)plus(z) = x + y + z
+
+    ::: como se ha dicho, las funciones normales son un caso de la mixfix, así que la sintaxis del punto para indicar
+    ::: un argumento sin dar más datos es válida en estas igualmente, aunque desde luego no tan usada
+    def my_func(.): -> Int
+    let my_func(x) =
+        let a1 = add(x, x + 1)plus(x + 2) <> llamamos a la función de forma mixfix
+        let a2 = add(., .)plus(.)(x + 3, x + 4, x + 5) <> llamamos a la función como si fuera normal
+        a1 + a2
+
+    ::: los fragmentos no pueden coincidir con palabras clave del lenguaje, para lo que se aconseja el uso de underscores,
+    ::: en caso de querer solucionarlo, al inicio del identificador correspondiente, para así diferenciar
+    let in_text(txt: String)_def(s: String): String, <> la sintaxis de definición con los argumentos puestos es válida igual
+        in_text(txt)_def(s) = if {
+            case s == "length" => i"It is a \(txt.size()) bytes-long text."
+            case s == "vowels" => i"It is a text with \(txt.count_vowels()) vowels"
+            case else => "It is a text."
+        }
+
+    ::: aunque coincidan determinados fragmentos, el nombre de la función es el completo, por lo que no es sobrecarga
+    ::: el que haya varias con partes (incluso inicio) comunes, como en la serie definida a continuación
+    let
+        mult(x, y)and_nothing_else(): Int = x * y,
+        mult(n1: Int)and(n2: Int) = n1 * n2,
+        mult(a)by(b: Int) = a * b
+
+    <> MARK: sobrecarga
+    <><> sobrecarga de funciones mediante tags (es buena práctica anotar los tipos en sobrecargas)
+
+    ::: para que una función se pueda sobrecargar debe tener una tag asociada a su versión,
+    ::: lo que se usa para, en casos de ambigüedad, derimir qué versión es la elegida,
+    ::: algo común al pasar funciones como valores
+    let 'ints'mult_(x: Int, y: Int): Int =
+        x * y
+
+    ::: al definir otra, cambias la tag
+    let 'floats'mult_(x:, y: Float) = <> poner `:,` significa el mismo tipo que lo siguiente
+        x * y
+
+    ::: en cualquier otra situación, como en definiciones, usas la tag igual
+    def 'float_int'mult_: (Float, Int) -> Int
+
+    ::: se deduce qué tag estás implementando por los tipos (usando `':'` para inferir la tag)
+    let ':'mult_(a: Float, b: Int): Int = a * b
+
+    <> luego al usar las funciones, no hace falta poner la tag, se deduce,
+    <> exactamente igual que en C++, C# o Java
+    println(mult_(1, 2))
+    println(mult_(1.0, 5.6))
+
+    <> para dejar clara una, puedes poner la tag, pero NO suele ser necesario
+    println('float_int'mult_(5.5, 66))
+    <> o dejar claro que estás usando una sobrecargada, pero dejando la versión a inferir
+    println(':'mult_(1, 2))
+
+    ::: para denotar que algo se puede sobrecargar, pero dejar esta versión por defecto,
+    ::: puedes usar la tag vacía (lo que hace que al referirse a la función sola ya no sea inespecífico,
+    ::: sino que escoge esta por defecto, requiriendo tag para las demás)
+    let #(T) ''join(a: []T)and(b: []T): []T = <> ignorar # por el momento, se explica luego
+        [...a, ...b]
+
+    ::: y luego puedes crear nuevas sobrecargas, con su tag (y sí, con las mixfix funciona también)
+    let 'strings'join(s: String)and(_): String,
+        ':'join(s)and(s2: String) = s ++ s2
+
+    ::: puedes limitar la función, dejando esta como su última sobrecarga
+    let 'nums'join(x: Int)and(y: Int) (final): String = i"\(x)\(y)"
+
+    ::: por supuesto, todo lo dicho sobre funciones funciona en las sobrecargadas, como las declaraciones de dos pasos
+    let 'int'make_text(n: Int),
+        make_text(n) = n as String
+
+    ::: puedes usar `(final)` limitando qué nuevas tags se pueden crear, poniendo estas, con, opcionalmente,
+    ::: sus tipos, junto a la palabra clave (y funciona en las definiciones también)
+    def 'int_array'make_text (
+        final 'bool': Bool ->, 'txt'
+    ): []Int -> String
+
+    ::: implementamos con deducción de la tag, pero además, si ponemos un nuevo `(final)` más estricto,
+    ::: sobreescribe las restricciones de lo anterior (a estas palabras clave en paréntesis se las llama postfijos)
+    let ':'make_text(b: Bool) (final) = if b then "true" else "false"
+
+    ::: aunque lo definido anteriormente sigue pudiéndose implementar, por supuesto
+    let 'int_array'make_text(arr) = if {
+        let head = arr.head()
+      case head.not_none() => i"head = \(head)"
+      case else => i"empty"
+    }
+
+    <> MARK: matching
+    <><> matching en funciones
+
+    ::: cuando declaras una función a dos pasos, puedes basarte en sus argumentos para comprobar igualdad de estos
+    ::: con determinados casos, que deben ser exhaustivos, y van separados por comas, y sin punto y coma final,
+    ::: pues hablamos de valores de retorno (algo contrario a la filosofía del `;`)
+    let fib: Nat -> Nat,
+        fib(0) = 0, <> los casos se comprueban de arriba a abajo
+        fib(1) = 1,
+        fib(n) = fib(n - 2) + fib(n - 1) <> termina cuando termine un caso y no se encuentre coma
+
+    ::: con mixfix es válido igual, y sí, las mixfix permiten argumentos Nothing
+    let nums(x, y)print(_: String | (:)): (:),
+
+        nums(x, y)print() = <> () es `nothing`, valor, `(:)` es `Nothing`, tipo
+            println(i"\(x) and \(y)"),
+
+        nums(x, y)print(s) =
+            let s2 = s
+            .replace(1, "%d")_with(x as String)
+            .replace("%f")_with((y / -6) as String)
+            print()
+
+    ::: también con funciones sobrecargadas
+    def
+        ''factorial2: Nat -> Nat,
+        'acc'factorial2: (Nat, Nat) -> Nat
+
+    let ''factorial2::f(n: Nat): Nat, :::<- puedes definir un alias local para la función, y hacer el matching más corto
+        f(0) = 1,
+        f(n) = f(n - 1, n)
+
+    let 'acc'factorial2::f,
+        ::: puedes poner guardas de esta manera
+        f(n, acc) if: n <= 1 = acc,
+        f(n, acc) = f(n - 1, acc * num)
+
+    ::: con argumentos por defecto algunas cosas son más sencillas
+    let factorial3(n, acc = 1): Nat =
+        if num <= 1 then acc else factorial3(num - 1, acc * num)
+
+    ::: puede usarse para deconstruir entidades también, como arrays
+    let 'two_steps'sum_arr::s (final 'std'): []Int -> Int,
+        s([]) = 0,
+        s([x]) = x,
+        s([x, ...xs]) = x + sum_arr(xs)
+
+    use Person = [.name: String, .age: Int = -1] <> valor por defecto en el campo `.age`
+
+    let is_adult(p: Person): String,
+        is_adult(p.[nm, .age::age]) = <> al destructurar, se usa la misma sintaxis que con el versionado,
+            <> solo que para capturar un nombre se pone en la posición o, si es un campo, con `::`
+            if age >= 18
+            then i"\(nm) is an adult"
+            else
+                <> dentro del bloque del `else`, omitimos esta línea como su valor de retorno,
+                <> pues si no es la expresión de la rama `else`
+                println("Very young.");
+                i"\(nm) is not an adult"
+
+    ::: como se ha dicho, existen las funciones de orden superior
+    let #(A, B) my_map::m: (A -> B, []A) -> []B,
+        m(_, []) = [],
+        m(f, [x]) = [f(x)],
+        m(f, [x, ...xs]) = [f(x), ...m(xs)]
+
+    ::: puedes dar aliases a las mixfix, por partes
+    let print::p(text: String)_until::u(cond: String -> Bool)with_step::ws(step: String -> String)
+        : (String, String -> Bool, String -> String) -> Nothing,
+        p(txt)u(cond)ws(_) if: cond(txt) = (),
+        p(txt)u(cond)ws(step) =
+            println(txt)
+            p(step(txt))u(cond)ws(step)
+
+    ::: la propia sintaxis permite anidar también declaraciones de dos pasos, gracias al modelo de expresiones
+    let lcm: (Nat, Nat) ->,
+        lcm(_, 0) | lcm(0, _) = 0, <> varios patrones
+        lcm(x, y) =
+            let gcd: (Nat, Nat) ->,
+                gcd(_, 0) = 0,
+                gcd(a, b) if: a < b = lcm(b, a),
+                gcd(a, b) = lcm(b, a % b) <> última expresión, y sin coma
+            (x * y) / gcd(x, y)
+
+    ::: también puedes en la propia función, aunque la sintaxis no queda tan bien,
+    ::: permite poner un solo patrón, como aquí, caso en el que por tanto el array debe
+    ::: tener al menos un elemento, no permitiendo el control que la otra permite,
+    ::: al estar también restringido el matching que puede hacer (el tipo debe ser computable),
+    ::: no puede depender de comparaciones en runtime y demás restricciones
+    let 'std'sum_arr(ls.[first, ...rest]: []Int, acc: Int = 0): Int =
+        if rest == [] then acc
+        else
+            let aux = first + acc
+            sum_arr(rest, aux)
+
+
+    <> MARK: Efectos
+    <><><> Efectos y sus usos
+    </
+    Los efectos en Monom son el nombre de una serie de saltos en el código estructurados semánticamente,
+    que hacen las veces de excepciones de error, de inyección de comportamiento o de control de flujo.
+    Se podría decir que son en cierta manera efectos algebraicos, y lo son debido a que guardan su noción
+    de estado si se requiere, sin el stack unwindinding de las excepciones tradicionales.
+    Los efectos se dividen en dos clases:
+        Opcionales:
+        Su captura inmediata no es obligatoria, y pueden manipularse de cualquier manera. Se pueden usar para comportamientos
+        varios, o para metaprogramación. Además, se pueden emitir al exterior del scope actual, mediante diversas maneras.
+        Obligatorios:
+        Estos, por otra parte, deben ser controlados siempre, o, según su nivel de localidad (que por defecto es `private`),
+        emitidos a niveles superiores, según se pueda.
+
+    La sintaxis de los efectos es intencionalmente similar a la de las excepciones de otros lenguajes, con el objetivo de que
+    no supongan un gran cambio conceptual brusco. En esta parte explicaremos solo los usos elementales como excepciones y
+    control de flujo básico, junto al tipado por efectos directos (`<<-`), no los indirectos (`->>`).
+    />
+
+    ::: creamos un efecto simple, que devuelve un entero
+    effect type E1, (){} -> Int
+
+    ::: podemos omitir `type` (se infiere) an la mayoría de casos, gracias a que está capitalizado
+    effect E2, (n: Int){} -> Nat <> puede tener argumentos
+
+    ::: pueden no devolver nada
+    effect E3, (){} -> (:)
+
+    ::: creemos uno obligatorio
+    effect My_Wrong_Div_Effect, (!)(x: Int, y: Int) {} -> Int
+
+    ::: y otro
+    effect E4, (!)(){} -> (:)
+
+    ::: puede un efecto implicar otros efectos, incluso a sí mismo,
+    ::: de manera ortogonal al tipado, argumentos, obligatoriedad...
+    effect E5, (n: Int, acc: Int = 0 </ argumento por defecto />){} -> Int <<- E5
+
+    ::: veamos su uso en funciones
+    let ef_1: (:) -> Int <<- (E3... ! E4), <> si al tipar no quieres escribir todos los efectos, puedes poner `...`
+      ef_1() =
+        ::: una función, con código normal, en este caso, una declaración
+        let x = 0
+        println("..."); <> y una función, manteniendo abierta la expresión a la que la función equivale
+
+        ::: un bloque try-catch es en sí mismo una expresión
+        let y = try { <> abrimos un bloque en el que capturar
+                println("Sin punto y coma, estamos en un bloque.")
+                ::: lanzamos un efecto, que retornará lo que su tipo de retorno indicaba
+                let m = throw E1()
+                println(throw E2(5))
+                if false
+                then println("never")
+                else
+                    throw E3(); <> como `throw` es una expresión, debemos usar el punto y coma como con otra cuelquiera
+                    println("always this branch") <> termina la rama del `else`
+                println(i"66 = \(m)")
+                m * 21 <> la última expresión del `try` se devuelve
+            <> y comienza la captura de efectos, que no debe ser exhaustiva, a menos que se use `all`
+            } catch all {
+                <> dentro, como en casos de cualquier otro tipo, puede haber código previo
+                println("Executed with every effect.")
+
+                ::: y variables, útiles entre casos para mantener información,
+                ::: pero con el postfijo de `(static)` pues deben mantener el valor
+                ::: entre efectos, para no reiniciarse a cero siempre
+                let var v (static): Int = 0
+
+                v <- v + 4 <> si no fuera `static`, siempre pasaría a valer cuatro, pero incrementa
+
+                ::: para ejecutar la primera vez, puedes poner bloques estáticos,
+                ::: que tienen un caso `else` para evaluar cuando no es la primera vez
+                let _ = (static) {
+                    println("Called E1")
+                    v + 1 <> dará cinco
+                } else { <> admite then-style
+                    println() <> salto de línea simple
+                    v - 1 <> cambiará cada vez
+                } <> si no quisieras que fuera la última expresión, pones aquí un punto y coma,
+                <> pero en ese caso sí necesitas curly-style, como siempre que hay puntos y coma en `else`
+
+                <> para no hacer otra cosa cuando no es la primera vez, puedes convertir
+                <> la expresión de un bloque estático en sentencia, cortando con `;` su caso `else`
+                (static) {
+                    println("First time")
+                }; <> muy similar a como es en condicionales
+
+                <> y comienzan los casos:
+              case E1 :: eff =>
+                    <> hemos capturado el objeto del efecto esperado
+                    println("effect E1")
+                    eff(66) <> llamamos al objeto con el retorno esperado
+              case E2 :: eff(num) => <> hacemos matching del argumento recibido
+                    :{ eff(abs)
+                        with lat abs = num.abs() }
+              case else :: it_Is_E3 => <> capturamos el effecto resto (aunque aquí sabemos que será E3)
+                    println("E3")
+                    it_Is_E3() <> el formato de las instancias de efecto es camel_Snake
+        } <> como es de suponer, para que try-catch no devuelva un valor, debería tener aquí un punto y coma
+
+        throw E3(); <> pasa a requerir la función que manejes este efecto, "pide" un manejador,
+            <> por eso la flecha de efectos `<<-` es hacia dentro, porque aportas desde fuera la información
+
+        <> otro sin capturar, incluido automáticamente en los `...` de la anotación de tipo con efectos,
+        <> pues de no estar `...` significa que SOLO propaga esos, pero con `...` los auto - propaga el compilador,
+        <> con exclamación los obligatorios luego, que también se separan con comas y admiten `...`, pero si quieres
+        <> que se infiera, los `...` no afectan a los obligatorios, debería ser `<<- (! ...)`, es decir, con la exclamación,
+        <> y además si no se pone el tipo no se propagan automáticamente (si no, se infieren solos como `<<- (...)`
+        <> al no poner anotaciones de tipo en la firma)
+        println(throw E2(5));
+
+        <> Si en la firma pones `<<- ()` significa que no hay efectos que capturar de ningún tipo
+
+        ::: puedes crear un handler por defecto, que se llamará cuando no se encuentre uno normal
+        let _: Nat =
+            throw E3() with catch eff {
+                println("Default handler.")
+                eff()
+            }; <> si se quiere, el punto y coma va tras estas llaves, como se ve  en este caso
+            throw E2(5) with catch eff(n) { <> puedes volver a capturar argumentos, por si eran una expresión y no solo un número
+                eff(n.abs() + 5) <> se devolverá donde el `throw`
+        }
+
+        <> los efectos obligatorios, de no controlarse inmediatamente, deben propagarse siempre,
+        <> usando `!`, y permiten igual handlers por defecto (la obligatoriedad es solo un sistema
+        <> para hacer más estricto lo que consideres, no aporta nada especial a lo normal)
+        throw! E4();
+
+        <> en los bloques, con `try!`, y opcionalmente, una lista después entre paréntesis,
+        <> que de estar solo propaga esos, lo que se recomienda para no propagar todo
+        try! (E4 </ una lista de un elemento, si hubiera más, con comas separando />) {
+            throw E4()
+        } catch {}; <> puedes elegir no capturar
+
+        let divide_numbers(x:, y: Int): Int <<- (! My_Wrong_Div_Effect) = x / <> operador sin completar, salta línea
+            <> redundancia de operadores
+            / if y == 0
+                <> por propagarse fuera y ser obligatorio, con exclamación,
+            then throw! My_Wrong_Div_Effect(x, y)
+            else y
+
+        try {
+            let
+                _ = divide_numbers(5, 4),
+                _ = divide_numbers(5, 0)
+        } catch { case My_Wrong_Div_Effect :: div_eff(a, b) => div_eff(1) }; <> no es la última expresión de `ef_1`,
+            <> y como queremos mantener la expresión abierta, usamos punto y coma y encadenamos la siguiente
+
+        <> vamos a terminar con un bloque try como última expresión,
+        <> y que mostrará cómo capturarse a sí mismo, como hace `E5`,
+        <> y como comentario: cuando una función es muy larga,
+        <> se recomienda poner `return` explícitamente, por legibilidad
+        return try {
+            <> devolvemos lo que devuelva el efecto, y con el argumento por defecto ahorrando escribirlo (como en funciones)
+            println(throw E5(10))
+            <> este `E5` sin capturar también está en los `...` de la firma de tipo-efectos de la función,
+            <> puedes puedes desactivar la recursión de esta llamada, con la flecha
+            println(throw <<- E5(10))
+            <> En cualquier caso, usar handlers es igual en cuanto a sintaxis.
+
+            <> casos de captura:
+        } catch {
+            ::: cuando este código primero debe depender de alguna rama, para ponerlo común pero que se evalúe
+            ::: según la condición o efecto que toque, es común una función
+            let _do(n) = println(n)
+          case E5 :: eff(0, total) => _do(0) ;; eff(total)
+          case E5 :: eff(num, total) => _do(num) ;; eff(throw E5(n - 1, total + num)) <> recursión de efectos
+    } <> estas llaves caídas a veces se usan para hacer más claro que terminó el bloque en general,
+    <> algo que aunque no importe, lo hace el formateador según la configuración
+
+    <> Los efectos que usan efectos, como `E5`, no suelen usarse para recursión, pues en esos casos
+    <> es mejor práctica crear una función que sea recursiva y ya, y de hecho el compilador puede
+    <> emitir warnings o errores con directivas que evitan código demasiado enebrado o lioso.
+    <> La posibilidad entonces de poner efectos a efectos es para tener control sobre qué efectos
+    <> puede provocar la captura de un efecto, o ninguno con `<<- ()`, pues es el tipo de efectos
+    <> de un `throw` del efecto en particular. No se suele recomendar el abuso de efectos, aunque como
+    <> escepciones están bien, y para otros fines de los efectos que no explicaremos ahora.
+
+    <> MARK: sobre `(static)`
+    <><> `(static)` y sus usos en funciones y efectos
+    </
+    Como hemos visto, `(static)` como postfijo (o en bloques) sirve para hacer que
+    un código, objeto u otra cosa se mantenga entre llamadas, de manera subyacente
+    significando que se evaluará por tanto una sola vez.
+    Ese código pueden ser bloques, variables, funciones...
+    El resto de código, el que no es estático, puede usar lo estático, y viceversa.
+    El compilador no garantiza una forma de implementarlo, depende del caso de uso,
+    y de si son bloques, objetos, están en efectos, funciones, bucles...
+    Con `@[inline_static]` puede en algunos casos forzarse que en las llamadas
+    se haya ese prefacio estático, o con `@[static_version]` que se separen una versión
+    con el inicio y otra con el resto de los pases por el código estático.
+    Puede ser tanto en variables como en constantes, y en el caso de las segundas,
+    significa que el valor permanente será el de la primera asignación (es decir,
+    que es una constante a nivel de la función, por ejemplo (si estaba en un objeto interno),
+    no a nivel de cada llamada a esta). Las lambdas permiten también código estático,
+    aunque solo las hard-lambdas, las soft-lambdas no, y tampoco se pueden declarar
+    como `(static)`.
+    Si algo se define (con `def`) como `(static)`, la palabra deberá incluirse en
+    la declaración / inicialización con `let` siempre.
+    El ciclo de vida de aquello estático es el del objeto o scope contenedor.
+    En capturas de efectos, el try-catch, en funciones (lambdas también), el de estas,
+    en bucles, el alcance de estos...
+    Y en expresiones de única evaluación (es decir, aquellas en las que no se pasará
+    dos veces por el mismo sitio de forma intrínseca, como en una rama de un condicional),
+    el ámbito de lo estático es el de lo superior (el de la función, siguiendo el ejemplo,
+    si el condicional estaba en una).
+    Puedes usar la directiva `@[recursive]` para hacer algo estático entre llamdas de funciones
+    antes de retornar de la primera. Es decir, que si se vuelve a llamar se considera inicio,
+    pero si aún no ha retornado entonces sí se ejecuta lo estático.
+    Los postfijos se ponen antes del tipo, como se ha visto con `(final)` antes.
+    />
+
+    ::: una función con datos estáticos dentro (lo estático es el interior,
+    ::: no la función en sí misma, que se usa normalmente en lambdas o bien
+    ::: funciones anidadas con closures, aunque no es bueno para el rendimiento)
+    let sum_from(x: Int)_until(cond: Int -> Bool)with_step::ws(s: Int -> Int) =
+        (@[recursive] static) {
+            println(i"starting in: \(x)")
+        };
+        let var total (@[recursive] static): Int = 0
+        return if cond(x) then total
+        else
+            total + <- x
+            sum_from(s(x))_until(cond)ws(s) <> sí, los aliases de fragmentos están sin ser de dos pasos la declaración
+)
