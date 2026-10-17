@@ -1080,6 +1080,12 @@ let main(): Nothing = (
     <> y que se pueda razonar correctamente por cada parte. No obstante, como el mundo real no siempre
     <> es puro matemáticamente, la existencia de bloques en casi todo (como se ha visto ya) es positiva,
     <> pues estos permiten usar las expresiones como sentencias, aunque no lo sean (son sentencias impuras).
+    <> Esto se ve en que, por ejemplo, entre `then` y la siguiente palabra clave del condicional, como `else`,
+    <> `elif` o un andconditional no hacen falta punto sy coma porque es un bloque. Es decir, que no usas
+    <> el punto y coma para descartar SIEMPRE un valor (no hace falta siempre tras un `println` por ejemplo),
+    <> lo usas para mantener abierta la expresión actual. Si usas el punto y coma tras todo lo que no devuelva valor,
+    <> entonces será correcto seguramente, pero habrá muchos puntos y coma redundantes.
+
 
     <> usar un punto y coma de forma innecesaria no produce errores, solo warnings,
     <> y el formateador los puede eliminar si se le da permiso
@@ -1120,6 +1126,21 @@ let main(): Nothing = (
 
     ::: también puedes usar la sintaxis abreviada, las llamadas "soft-lambdas" frente a las anteriores "hard-lambdas"
     let lam3 = x => x + 1
+
+    ::: las hard-lambdas tienen de ventaja, además de capacidades extra frente a las soft-lambdas,
+    ::: que su sintaxis es igual que la de una función, pero con `fun` en vez del nombre, por lo que
+    ::: todo lo dicho sobre funciones se aplica también a las hard-lambdas
+    let _ = fun(x: Int, y: Int): Int =
+        let max =
+            if x < y {
+                println("Less")
+                y
+            } else {
+                println("Greater or equal")
+                x
+        }
+        println(i"Max = \(max)");
+        return max
 
     <> MARK: recursión
     <><> recursión de lambdas
@@ -1360,9 +1381,9 @@ let main(): Nothing = (
         s([x]) = x,
         s([x, ...xs]) = x + sum_arr(xs)
 
-    use Person = [.name: String, .age: Int = -1] <> valor por defecto en el campo `.age`
+    use _Person = [.name: String, .age: Int = -1] <> valor por defecto en el campo `.age`
 
-    let is_adult(p: Person): String,
+    let is_adult(p: _Person): String,
         is_adult(p.[nm, .age::age]) = <> al destructurar, se usa la misma sintaxis que con el versionado,
             <> solo que para capturar un nombre se pone en la posición o, si es un campo, con `::`
             if age >= 18
@@ -1439,12 +1460,12 @@ let main(): Nothing = (
     effect E3, (){} -> (:)
 
     ::: creemos uno obligatorio
-    effect My_Wrong_Div_Effect, (!)(x: Int, y: Int) {} -> Int
+    effect My_Wrong_Div_Effect, (!)(x: Int, y: Int){} -> Int
 
     ::: y otro
     effect E4, (!)(){} -> (:)
 
-    ::: puede un efecto implicar otros efectos, incluso a sí mismo,
+    ::: un efectopuede  implicar otros efectos, incluso a sí mismo,
     ::: de manera ortogonal al tipado, argumentos, obligatoriedad...
     effect E5, (n: Int, acc: Int = 0 </ argumento por defecto />){} -> Int <<- E5
 
@@ -1453,7 +1474,7 @@ let main(): Nothing = (
       ef_1() =
         ::: una función, con código normal, en este caso, una declaración
         let x = 0
-        println("..."); <> y una función, manteniendo abierta la expresión a la que la función equivale
+        println("..."); <> y una llamada, manteniendo abierta la expresión a la que la función equivale
 
         ::: un bloque try-catch es en sí mismo una expresión
         let y = try { <> abrimos un bloque en el que capturar
@@ -1464,30 +1485,34 @@ let main(): Nothing = (
                 if false
                 then println("never")
                 else
-                    throw E3(); <> como `throw` es una expresión, debemos usar el punto y coma como con otra cuelquiera
+                    throw E3(); <> como `throw` es una expresión, debemos usar el punto y coma como con otra cualquiera
                     println("always this branch") <> termina la rama del `else`
                 println(i"66 = \(m)")
                 m * 21 <> la última expresión del `try` se devuelve
             <> y comienza la captura de efectos, que no debe ser exhaustiva, a menos que se use `all`
-            } catch all {
+            } catch all { <> en este caso es exhaustiva
                 <> dentro, como en casos de cualquier otro tipo, puede haber código previo
                 println("Executed with every effect.")
 
                 ::: y variables, útiles entre casos para mantener información,
-                ::: pero con el postfijo de `(static)` pues deben mantener el valor
-                ::: entre efectos, para no reiniciarse a cero siempre
+                ::: que con el postfijo de `(static)` pueden mantener el valor
+                ::: entre efectos, para no reiniciarse a cero siempre en este caso
                 let var v (static): Int = 0
 
-                v <- v + 4 <> si no fuera `static`, siempre pasaría a valer cuatro, pero incrementa
+                <> si no fuera `static`, siempre pasaría a valer cuatro, pero incrementa
+                <> cada vez en 4
+                v <- v + 4
+
+                println("v = " ++ v as String)
 
                 ::: para ejecutar la primera vez, puedes poner bloques estáticos,
                 ::: que tienen un caso `else` para evaluar cuando no es la primera vez
                 let _ = (static) {
                     println("Called E1")
                     v + 1 <> dará cinco
-                } else { <> admite then-style
+                } else { <> admite then-style, aunque este es curly-style
                     println() <> salto de línea simple
-                    v - 1 <> cambiará cada vez
+                    v - 1 <> cambiará cada vez, `v` era estática
                 } <> si no quisieras que fuera la última expresión, pones aquí un punto y coma,
                 <> pero en ese caso sí necesitas curly-style, como siempre que hay puntos y coma en `else`
 
@@ -1504,14 +1529,15 @@ let main(): Nothing = (
                     eff(66) <> llamamos al objeto con el retorno esperado
               case E2 :: eff(num) => <> hacemos matching del argumento recibido
                     :{ eff(abs)
-                        with lat abs = num.abs() }
+                        with let abs = num.abs() }
               case else :: it_Is_E3 => <> capturamos el effecto resto (aunque aquí sabemos que será E3)
                     println("E3")
                     it_Is_E3() <> el formato de las instancias de efecto es camel_Snake
         } <> como es de suponer, para que try-catch no devuelva un valor, debería tener aquí un punto y coma
 
         throw E3(); <> pasa a requerir la función que manejes este efecto, "pide" un manejador,
-            <> por eso la flecha de efectos `<<-` es hacia dentro, porque aportas desde fuera la información
+            <> por eso la flecha de efectos `<<-` es hacia dentro, porque aportas desde fuera la información,
+            <> y porque así contrata más con la flecha de las funciones (`->`)
 
         <> otro sin capturar, incluido automáticamente en los `...` de la anotación de tipo con efectos,
         <> pues de no estar `...` significa que SOLO propaga esos, pero con `...` los auto - propaga el compilador,
@@ -1523,12 +1549,14 @@ let main(): Nothing = (
 
         <> Si en la firma pones `<<- ()` significa que no hay efectos que capturar de ningún tipo
 
-        ::: puedes crear un handler por defecto, que se llamará cuando no se encuentre uno normal
+        ::: puedes crear un handler por defecto, que se llamará cuando no se encuentre uno normal,
+        ::: pues si se encuentra otro será ese el llamado en vez del with-catch, pero la propagación se mantiene
         let _: Nat =
-            throw E3() with catch eff {
+            throw E3() with catch E3 :: eff { <> normalmente, aquí el type effect no se escribe, pues es el mismo
                 println("Default handler.")
                 eff()
-            }; <> si se quiere, el punto y coma va tras estas llaves, como se ve  en este caso
+            }; <> si se quiere, el punto y coma va tras estas llaves, como se ve en este caso
+            <> en este caso       vvvvvvvv se ha inferido el efecto
             throw E2(5) with catch eff(n) { <> puedes volver a capturar argumentos, por si eran una expresión y no solo un número
                 eff(n.abs() + 5) <> se devolverá donde el `throw`
         }
@@ -1539,23 +1567,23 @@ let main(): Nothing = (
         throw! E4();
 
         <> en los bloques, con `try!`, y opcionalmente, una lista después entre paréntesis,
-        <> que de estar solo propaga esos, lo que se recomienda para no propagar todo
+        <> que de estar, solo propaga esos, lo que se recomienda para no propagar todo
         try! (E4 </ una lista de un elemento, si hubiera más, con comas separando />) {
             throw E4()
         } catch {}; <> puedes elegir no capturar
 
         let divide_numbers(x:, y: Int): Int <<- (! My_Wrong_Div_Effect) = x / <> operador sin completar, salta línea
-            <> redundancia de operadores
+            <> redundancia de operadores, empieza con `/` también
             / if y == 0
                 <> por propagarse fuera y ser obligatorio, con exclamación,
-            then throw! My_Wrong_Div_Effect(x, y)
+            then throw! My_Wrong_Div_Effect(x, y) <> esta rama `then` evalúa a lo que de esta expresión `throw`
             else y
 
         try {
             let
                 _ = divide_numbers(5, 4),
                 _ = divide_numbers(5, 0)
-        } catch { case My_Wrong_Div_Effect :: div_eff(a, b) => div_eff(1) }; <> no es la última expresión de `ef_1`,
+        } catch { case My_Wrong_Div_Effect :: div_eff(_, _) => div_eff(1) }; <> no es la última expresión de `ef_1`,
             <> y como queremos mantener la expresión abierta, usamos punto y coma y encadenamos la siguiente
 
         <> vamos a terminar con un bloque try como última expresión,
@@ -1565,8 +1593,11 @@ let main(): Nothing = (
         return try {
             <> devolvemos lo que devuelva el efecto, y con el argumento por defecto ahorrando escribirlo (como en funciones)
             println(throw E5(10))
+
             <> este `E5` sin capturar también está en los `...` de la firma de tipo-efectos de la función,
-            <> puedes puedes desactivar la recursión de esta llamada, con la flecha
+            <> puedes puedes desactivar la recursión de esta llamada con la flecha, para que si se lanza desde
+            <> la captura el efecto, no se devuelva, sino que se propague, algo que se puede hacer desde
+            <> el bloque de capturas igual, con la flecha también (misma sintaxis, mismo funcionamiento)
             println(throw <<- E5(10))
             <> En cualquier caso, usar handlers es igual en cuanto a sintaxis.
 
@@ -1578,7 +1609,7 @@ let main(): Nothing = (
           case E5 :: eff(0, total) => _do(0) ;; eff(total)
           case E5 :: eff(num, total) => _do(num) ;; eff(throw E5(n - 1, total + num)) <> recursión de efectos
     } <> estas llaves caídas a veces se usan para hacer más claro que terminó el bloque en general,
-    <> algo que aunque no importe, lo hace el formateador según la configuración
+    <> algo que, aunque no importe, lo hace el formateador según la configuración
 
     <> Los efectos que usan efectos, como `E5`, no suelen usarse para recursión, pues en esos casos
     <> es mejor práctica crear una función que sea recursiva y ya, y de hecho el compilador puede
@@ -1587,6 +1618,56 @@ let main(): Nothing = (
     <> puede provocar la captura de un efecto, o ninguno con `<<- ()`, pues es el tipo de efectos
     <> de un `throw` del efecto en particular. No se suele recomendar el abuso de efectos, aunque como
     <> escepciones están bien, y para otros fines de los efectos que no explicaremos ahora.
+
+    ::: los efectos pueden tener variantes de sobrecarga, si son de tipos diferentes o de distinto número
+    ::: de argumentos, usando también tags, que se usan para ser preciso
+    effect E6, <> `type` se sigue infiriendo
+
+        ::: los posibles casos del efecto
+        'Int'(x: Int){} -> Int,
+
+        ::: la obligatoriedad es por caso
+        'Nothing_But_Important'(!)(){} -> (:),
+
+        ::: que pueden tener tags, en Pascal_Camel como los efectos
+        'Str'(x: String){} -> Bool
+
+    try {
+        ::: un entero
+        let n: Int = 65
+
+        println(throw 'Int'E6(n)) <> podemos llamar por tag
+
+        <> a pesar de ser obligatoria esta versión del efecto, no necesitamos
+        <> exclamación porque la vamos a controlar aquí mismo
+        throw E6()
+
+        if throw E6("some string") <> se infieren las versiones que llamar
+        then println("Long") else println("Not that long")
+    } catch {
+      case E6 :: eff(x: Int) => <> con tipo para que se sepa qué buscamos y así diferenciar
+        eff(x + 5)
+      case 'Nothing_But_Important'E6 :: eff => <> puedes usar la tag, aunque no es común
+        println("E6")
+        eff()
+      case E6 :: eff(str: String) =>
+        eff(str.size() > 40)
+    }
+
+    ::: otro efecto, con tipado en el mismo,
+    ::: que es como de función, pudiendo omitir en este la palabra `effect`
+    effect E7: effect(Int, Int) -> Int, (a: Int, b: Int){} -> Int
+
+    <> se puede invertir el orden de captura de efectos, con las mismas reglas
+    <> para todo lo demás, y lo que aplique al `try`, como las exclamaciones,
+    <> sobre el `in` (quedando por ejemplo `in!` cuando no se capturan efectos obligatorios)
+    catch {
+      case E7 :: eff(x, y: Int) => <> puedes poner el tipo en el matching, como se ha visto antes
+        eff(x - y)
+    } in {
+        println(throw E7(6, 4) as String ++ " is equal to 2")
+    } <> y si estuviéramos en una expresión, y no quisiéramos que fuera este el final,
+    <> pondríamos aquí un punto y coma, como era de esperar
 
     <> MARK: sobre `(static)`
     <><> `(static)` y sus usos en funciones y efectos
@@ -1628,10 +1709,196 @@ let main(): Nothing = (
     let sum_from(x: Int)_until(cond: Int -> Bool)with_step::ws(s: Int -> Int) =
         (@[recursive] static) {
             println(i"starting in: \(x)")
+        } else {
+            print("The condition is still false? ")
         };
         let var total (@[recursive] static): Int = 0
-        return if cond(x) then total
+        return if cond(x) then
+            println("yes") <> sin punto y coma, porque `then` abre bloque
+            total
         else
+            println("no");
             total + <- x
-            sum_from(s(x))_until(cond)ws(s) <> sí, los aliases de fragmentos están sin ser de dos pasos la declaración
+            sum_from(s(x))_until(cond)ws(s) <> sí, los aliases de fragmentos se pueden usar sin ser de dos pasos la declaración
+
+    <> MARK: Tipos
+    <><><> Tipos
+    </
+    Los tipos son algo fundamental en Monom, y como tal ya se habían explicado algunas cosas sobre estos antes
+    de esta sección. Tampoco cubriremos todo de momento, pero sí que profundizaremos más de lo que lo habíamos
+    hecho hasta ahora. Empezaremos con la noción elemental, luego con los tipos suma, los producto y luego
+    pasaremos a la parametrización de tipos mediante constructores de tipos, que podríamos llamar "type functions".
+    />
+
+    ::: definamos un alias de tipo, que solo es nombrar algo, no un tipo en sí mismo
+    use ColorChan = Nat8
+
+    ::: ahora definamos un tipo color
+    type ColorRGB = [.r:, .g:, .b: ColorChan]
+
+    ::: también un alias para la versión con canal alfa,
+    ::: y recordemos que al no tener nombre la posición en la que hacemos el spread,
+    ::: los nombres de campo se mantienen, aunque en realidad no los vamos a usar aún,
+    ::: y que si lo tuviera entonces se haría el spread pero no serían los campos accesibles
+    use ColorAlias = [...ColorRGB, .a: ColorChan]
+
+    ::: y ahora el tipo del color con canal alfa
+    type ColorRGBA = [...ColorRGB, .a: ColorChan] <> podríamos haber puesto el alias también
+
+    ::: y un color que acepta otros colores, siempre que mantengan este inicio
+    type SomeColor = [...ColorRGB, ...] <> nótese que `...` está solitario, como en la sección de array vimos
+
+    <> Los aliases son puras equivalencias estructurales, que por tanto no tienen seguridad de tipado nominal,
+    <> mientras que los conjuntos sí que mantienen identidad nominal, y debes ser explícito para cambiarles
+    <> el tipo, mediante `as`, algo que explicaremos cómo sobrecargar para crear conversiones propias luego.
+    <> De momento nos vale con los operadores de conversión automáticos que crea el compilador.
+
+    ::: una función que toma un ColorRGB
+    let rgb_is_mainly_red((color: ColorRGB).[r, g, b]): Bool = r > g && r > b
+
+    ::: otra, que toma lo que concuerde con la estructura, pero que puede ser cualquier cosa
+    let alias_is_mainly_red((color: ColorAlias).[r, g, b, ...]) <> con `...` ignoramos el resto, como con el versionado
+        : Bool = r > g && r > b
+
+    ::: una función que toma un ColorRGBA
+    let rgba_is_mainly_red((color: ColorRGBA).[r, g, b, _]): Bool = r > g && r > b
+
+    ::: otra, que toma SomeColor de al menos 4 elementos
+    let some_is_mainly_red((color: SomeColor).[r, g, b, _, ...]): Bool = r > g && r > b
+
+    ::: un ColorRGB real
+    let colorRGB: ColorRGB = [3, 2, 1]
+
+    ::: uno que no cumple de manera nominal ser color
+    let colorAlias: ColorAlias = [3, 2, 1, 0]
+
+    ::: un color con canal alfa
+    let colorRGBA: ColorRGBA = [3, 2, 1, 120]
+
+    ::: y algo que cuadra con ser un color
+    let someColor: SomeColor = [3, 2, 1, 0, -1, "str"]
+
+    <> el tipo de `someColor` es `[.r: ColorChan, .g: ColorChan, .b: ColorChan, Int, Int, String] & SomeColor`
+
+    <> Las siguientes llamadas son válidas:
+    let
+        _ = rgb_is_mainly_red(colorRGB),
+        _ = alias_is_mainly_red(colorAlias),
+        _ = rgba_is_mainly_red(colorRGBA),
+        _ = some_is_mainly_red(someColor),
+        _ = alias_is_mainly_red(colorRGBA),
+        _ = some_is_mainly_red([...colorRGB, 0])
+
+    <> sin embargo, llamar a algo que pide ColorRGB con un ColorRGBA no es correcto,
+    <> ya que los elementos cuando se meten en el array principal del ColorRGBA mediante
+    <> el spread se convierten en varios ColorChan, pierden la identidad, por lo que
+    <> debemos castearlos, algo que podemos hacer porque al mantener la estructura
+    <> el compilador nos deja, pero debemos hacerlo de forma explícita
+    let _ = rgb_is_mainly_red(colorRGBA as ColorRGB)
+
+    <> Por esto, podemos elegir entre tipado estructural, mediante los aliases, o nominal por tipos,
+    <> aunque si el alias fuera de colorChan con este siendo tipo y no alias, de nuevo nos afectarían
+    <> las restricciones, solo permitiendo usar `as` de, por ejemplo, ColorRGBA a ColorRGB, pero
+    <> no de un array de tres Nat8 a cualquiera de ellos (porque ColorChan ya es nominal al hacerlo tipo).
+
+    <> MARK: conjuntos
+    <><> los tipos como conjuntos
+
+    ::: creemos un tipo simple
+    type Dog = [.name: String, .owner: String, .age: Nat,]
+
+    ::: y otro más
+    type Cat = [.name: String, .age: Nat, .color: ColorRGB]
+
+    ::: ahora podemos crear un nuevo tipo que sea uno de ellos
+    type Pet1 = Dog | Cat
+
+    ::: o asignar tags a las posibilidades, estas en PascalCase, claro,
+    ::: y a diferencia de en otros casos de tags, NO es obligatorio
+    ::: que todo las tenga (pueden tenerla cualquier número desde 0 hasta todos)
+    type Pet2 = 'D' Dog | Cat <> el tipo ocupará lo de la variante de mayor tamaño
+
+    <> Importante: ¿Y si `Dog` tuviera ya una tag 'D', cómo diferencias entre que sea esa tag
+    <> o que sea una nueva? En el caso de arriba, con 'D =', es decir, que pones un igual en la tag,
+    <> que se considera buena práctica. Los espacios no importan ('Dog=' o 'Dog  =` son equivalentes),
+    <> pero mejor poner al menos uno.
+
+    <> Cuando los tamaños son demasiado grandes, a veces el compilador opta
+    <> por el uso de punteros, algo que se puede evitar usando `@[inline]`,
+    <> de manera similar a las funciones.
+
+    ::: a veces, no quieres crear tipos como tal, simplemente una variante
+    type IsYoung = 'Yes' | 'No' | 'MoreOrLess' <> se adhiere a cualquier tipo, pues en realidad está `Nothing` como tipo
+
+    ::: y los tipos se pueden unir también, aunque aquí guardaremos el tipo de momento en un alias
+    use _Pet3 = IsYoung & Pet2
+
+    ::: equivale a ('Yes' | 'No' | 'MoreOrLess') & ('D'Dog | Cat)
+    ::: que es un tipo producto realmente, con un valor discriminante
+    ::: en memoria, normalmente solapado en la misma que la tag del otro tipo
+    ::: porque no hay demasiadas variantes
+    type Pet3 = _Pet3
+
+    ::: una mascota
+    let marlene: 'Yes'Pet3 = ["Marlene", 2, [128, 128, 128]]
+
+    ::: esto es verdadero
+    let _: Bool =
+        marlene.__Type__ == Cat
+
+    ::: una función que usará el `match` sobre el argumento
+    let match_a_pet(p: Pet3): String =
+        match p { <> la estructura es muy similar a todas las que tienen casos, y permite código antes igual
+            println(p.name) <> se puede porque está en la misma posición
+          case 'Yes' & 'D' => "He is a young dog"
+          case Cat::cat.[.color.g :: green] =>
+            i"\(cat.name)'s age is \(cat.age), " ++ <> ahora podemos acceder a campos de otro orden
+            ++ "and it is \(green)/255 green"
+          case else => "This must be a dog" <> las expresiones match deben ser exhaustivas...
+        } <> ...a menos que tengan aquí un punto y coma, convirtiéndose en sentencias
+
+    ::: que las ramas de un ADT sean tipos permite algo similar a las data kinds, aunque no tienen
+    ::: esos tipos que ser obligatoriamente tipos nombrados, pueden ser anónimos
+    type PersonWithAnonTypes: [.name: String, .age: Nat] <> puedes poner en el tipo del tipo
+        <> cosas comunes que deberá tener (y tipar un tipo con otro, siendo esa la inclusión entre conjuntos,
+        <> por ejemplo spudiendo decir `type ColorRGBA: ColorRGB` para que el rgba valga como rgb (pero sufre slicing))
+        = 'Worker    =' [String, Nat, .job: String] <> los nombres ya se los pone la anotación de arriba
+        | 'NotWorker =' [String, Nat] <> estos tipos no tienen nombre en sí mismos
+
+    <> En conclusión, hemos visto que los tipos son expresiones enn sí mismos, y que las operaciones
+    <> entre ellos son expresiones que devuelven un nuevo tipo, al que podemos dar identidad con `type`
+    <> o solo nombre como alias con `use`, según prefiramos.
+
+    ::: adelantando acontecimientos, explicaremos los tipos virtuales, que permiten abstraer el layout
+    ::: de la memoria, y que un campo se pueda referenciar independientemente de su posición,
+    ::: aunque al saberse más sobre el tipo en algunas ramas el compilador puede realizar la des-virtualización,
+    ::: que es mejor para el rendimiento, aunque no hay demasiado coste en la virtualización, pues equivale
+    ::: a que se haga un match de la tag automáticamente (incluso que se memorice el valor si se usa mucho),
+    ::: o a que en algunos casos se guarde otro valor con el offset determinado (si se hace esa optimización)
+    ::: para no evaluar condiciones, sino hacer un desplazamiento sobre la dirección de memoria base
+    virtual type Pet4 = Dog | Cat
+
+    ::: función de prueba
+    let is_old_this_pet(pet: Pet4): Bool =
+        if pet.age >= 10 { <> accedemos directamente, vale para cualquiera
+            true
+        } else false
+
+    <> MARK: paramétricos
+    <><> tipos paramétricos
+
+    ::: creemos un tipo en base a valores, lo que genera un tipo nuevo
+    type MyBox(T) = 'Filled =' T | 'Empty'
+
+    let box1: MyBox(String) = "I am in a box." Thing
+
+    let box2: 'Empty'MyBox(Int) = <> sí, puedes tipar directamente como una variante
+        nothing
+
+    ::: probando
+    let fill_my_box(b: MyBox(T)): 'Filled'MyBox(T) =
+        match b {
+            case 'Empty' => (T.___defaultValue___): 'Filled'MyBox(_) <> se infiere el argumento de tipo
+            case else => b
+        }
 )
