@@ -17,4 +17,4 @@ C:\DEV\Tools\code\a44adf7f53\resources\app\extensions\monom-extension
 ```
 
 The correct place changes depending on your instalation. 
-I have also uploaded some resources in Spanish, which I will traduce later.
+I have also uploaded some resources in Spanish, which I will translate later.
