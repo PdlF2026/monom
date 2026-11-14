@@ -1318,7 +1318,7 @@ let main() = {
         ::: si no existe ya, un método llamado `.rev` de alias para `.reverse`, cómodo si se usa mucho.
         ::: Las anotaciones en realidad son como macros, aunque no alteran lo que ves (solo añaden en base a ello,
         ::: por lo que lo escrito sigue siendo fiable). Serán de lo último en explicarse, pues requieren
-        ::: dominar el modelo de expresiones, y no son recomendables (por la magia oculta), salvo para evitar boilerplate
+        ::: dominar el modelo de expresiones, y no son recomendables (por la magia oculta), salvo para evitar boilerplate.
         ::: Así, existe `@setter(.)`, por ejemplo, que toma una lambda de argumento para evaluar si se cambia o no el valor.
         @new_method_rev_as_reverse
         let arr22: [:2]Int = [1, 2]
