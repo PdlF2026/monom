@@ -2095,7 +2095,9 @@ let main() = {
         <> También puedes hacer que los bucles for devuelvan un valor, siendo ortogonal
         <> a todo lo explicado hasta ahora, poniendo una flecha tras la etiqueta (si la hay)
         <> que hay tras `do`. En los bucles `forever` el retorno también era tras la etiqueta.
-        let _: Int = for x in range do -> Int {
+        <> Cuando termina por otros motivos que no son `break`, la expresión del `else`
+        <> se devuelve. Se evalúa en ese momento, con el estado que tenga al terminar.
+        let _: Int = for x in range do::_ -> Int else 0 {
             if x ** 2 > 4 { break x }
         } until false {} <> Cuando hay retorno, es obligatorio el curly-style,
             <> porque con el punto y coma se pensaría que no es la última expresión.
